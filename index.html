@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DirecciónVE — Infraestructura de direccionamiento digital para Venezuela</title>
+  <meta name="description" content="La primera infraestructura de direccionamiento digital, abierta y soberana para Venezuela. Stop a las direcciones tipo 'al lado del Locatel'.">
+  <meta name="theme-color" content="#0a0a0a">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📍</text></svg>">
+  <style>
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --card: #16161f;
+      --border: rgba(255, 255, 255, 0.06);
+      --border-hover: rgba(255, 255, 255, 0.12);
+      --text: #f4f4f5;
+      --text-secondary: #8b8b9e;
+      --accent-1: #635bff;
+      --accent-2: #0ea5e9;
+      --accent-3: #a855f7;
+      --gradient-primary: linear-gradient(135deg, #635bff, #0ea5e9);
+      --gradient-vivid: linear-gradient(135deg, #635bff, #a855f7, #0ea5e9);
+      --radius: 12px;
+      --radius-lg: 20px;
+      --max-w: 1120px;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      font-family: Inter, system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+
+    /* — Nav — */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 0 32px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      background: rgba(10, 10, 15, 0.7);
+      backdrop-filter: blur(20px) saturate(1.4);
+      -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    }
+
+    .logo {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .logo span {
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .nav-link {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color 0.2s;
+      padding: 8px 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .nav-link:hover {
+      color: var(--text);
+      border-color: var(--border-hover);
+    }
+
+    /* — Layout — */
+    main {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    section {
+      padding: 100px 0;
+    }
+
+    /* — Hero — */
+    .hero-wrapper {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-glow {
+      position: absolute;
+      top: -40%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 140%;
+      max-width: 900px;
+      height: 600px;
+      background: radial-gradient(ellipse at center,
+        rgba(99, 91, 255, 0.2) 0%,
+        rgba(168, 85, 247, 0.1) 30%,
+        rgba(14, 165, 233, 0.08) 50%,
+        transparent 70%
+      );
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .hero {
+      position: relative;
+      z-index: 1;
+      padding-top: 180px;
+      padding-bottom: 80px;
+      text-align: center;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      color: var(--accent-2);
+      margin-bottom: 28px;
+      padding: 6px 16px;
+      border: 1px solid rgba(14, 165, 233, 0.2);
+      border-radius: 100px;
+      background: rgba(14, 165, 233, 0.06);
+    }
+
+    .kicker::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-2);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .hero h1 {
+      font-size: clamp(2.25rem, 5.5vw, 3.75rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.035em;
+      margin-bottom: 28px;
+    }
+
+    .hero h1 .gradient-text {
+      background: var(--gradient-vivid);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero > p {
+      font-size: clamp(1rem, 2.5vw, 1.15rem);
+      color: var(--text-secondary);
+      line-height: 1.75;
+      max-width: 620px;
+      margin: 0 auto;
+    }
+
+    /* — Form — */
+    .form-wrapper {
+      max-width: 500px;
+      margin: 48px auto 0;
+    }
+
+    .form-container {
+      display: flex;
+      gap: 8px;
+      padding: 6px;
+      background: var(--surface);
+      border: 1px solid var(--border-hover);
+      border-radius: var(--radius);
+      box-shadow: 0 0 0 1px rgba(99, 91, 255, 0.05), 0 4px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .form-container:focus-within {
+      border-color: rgba(99, 91, 255, 0.3);
+      box-shadow: 0 0 0 1px rgba(99, 91, 255, 0.15), 0 4px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .form-container input[type="email"] {
+      flex: 1;
+      min-width: 0;
+      padding: 14px 16px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      color: var(--text);
+      background: transparent;
+      border: none;
+      outline: none;
+    }
+
+    .form-container input[type="email"]::placeholder {
+      color: var(--text-secondary);
+      opacity: 0.5;
+    }
+
+    .form-container button {
+      flex-shrink: 0;
+      padding: 14px 24px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      font-family: inherit;
+      color: #fff;
+      background: var(--gradient-primary);
+      background-size: 200% 200%;
+      border: none;
+      border-radius: calc(var(--radius) - 4px);
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .form-container button:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    .form-container button:active {
+      transform: translateY(0);
+    }
+
+    .form-container button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .spinner {
+      display: none;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .form-note {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      opacity: 0.5;
+    }
+
+    .form-success {
+      display: none;
+      text-align: center;
+      padding: 24px;
+      background: var(--surface);
+      border: 1px solid rgba(99, 91, 255, 0.15);
+      border-radius: var(--radius);
+      animation: fadeUp 0.4s ease-out;
+    }
+
+    .form-success .check {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--gradient-primary);
+      color: #fff;
+      font-size: 1.2rem;
+      margin-bottom: 14px;
+    }
+
+    .form-success p {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .form-success p strong {
+      color: var(--text);
+    }
+
+    .form-error {
+      display: none;
+      text-align: center;
+      margin-top: 12px;
+      font-size: 0.85rem;
+      color: #f43f5e;
+      animation: fadeUp 0.3s ease-out;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* — Logos / Social proof — */
+    .social-proof {
+      text-align: center;
+      padding: 0 0 60px;
+    }
+
+    .social-proof p {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-secondary);
+      opacity: 0.4;
+      margin-bottom: 20px;
+    }
+
+    .tech-logos {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      flex-wrap: wrap;
+      opacity: 0.35;
+    }
+
+    .tech-logos span {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      letter-spacing: 0.02em;
+    }
+
+    /* — Stats — */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .stat {
+      background: var(--surface);
+      padding: 48px 28px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: clamp(1.5rem, 3vw, 2.2rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+      background: var(--gradient-vivid);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .stat-label {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    /* — Features — */
+    .features-section {
+      padding: 100px 0;
+    }
+
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: clamp(1.5rem, 4vw, 2.5rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 60px;
+      max-width: 540px;
+      line-height: 1.15;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .feature-card {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 36px 28px;
+      transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+      overflow: hidden;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: var(--gradient-vivid);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .feature-card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(99, 91, 255, 0.08);
+    }
+
+    .feature-card:hover::before {
+      opacity: 1;
+    }
+
+    .feature-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      font-size: 1.2rem;
+      margin-bottom: 20px;
+    }
+
+    .feature-card:nth-child(1) .feature-icon {
+      background: rgba(99, 91, 255, 0.12);
+    }
+
+    .feature-card:nth-child(2) .feature-icon {
+      background: rgba(168, 85, 247, 0.12);
+    }
+
+    .feature-card:nth-child(3) .feature-icon {
+      background: rgba(14, 165, 233, 0.12);
+    }
+
+    .feature-card h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 12px;
+    }
+
+    .feature-card p {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    /* — CTA Bottom — */
+    .cta-bottom {
+      text-align: center;
+      padding: 80px 0 100px;
+      position: relative;
+    }
+
+    .cta-bottom-glow {
+      position: absolute;
+      bottom: -20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120%;
+      max-width: 700px;
+      height: 400px;
+      background: radial-gradient(ellipse at center,
+        rgba(99, 91, 255, 0.1) 0%,
+        rgba(14, 165, 233, 0.05) 40%,
+        transparent 70%
+      );
+      pointer-events: none;
+    }
+
+    .cta-bottom h2 {
+      position: relative;
+      font-size: clamp(1.5rem, 4vw, 2.25rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 16px;
+    }
+
+    .cta-bottom > p {
+      position: relative;
+      color: var(--text-secondary);
+      margin-bottom: 36px;
+      font-size: 1.05rem;
+    }
+
+    /* — Footer — */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 24px;
+      text-align: center;
+    }
+
+    footer p {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      opacity: 0.35;
+    }
+
+    /* — Responsive — */
+    @media (max-width: 768px) {
+      nav {
+        padding: 0 20px;
+      }
+
+      .hero {
+        padding-top: 140px;
+      }
+
+      .form-container {
+        flex-direction: column;
+      }
+
+      .form-container button {
+        justify-content: center;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+        border-radius: var(--radius);
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+
+      section {
+        padding: 72px 0;
+      }
+
+      .tech-logos {
+        gap: 20px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .hero {
+        padding-top: 120px;
+      }
+
+      .stat {
+        padding: 28px 20px;
+      }
+
+      .feature-card {
+        padding: 28px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="#" class="logo">Dirección<span>VE</span></a>
+    <a href="https://github.com" class="nav-link" target="_blank" rel="noopener noreferrer">GitHub →</a>
+  </nav>
+
+  <main>
+
+    <!-- Hero -->
+    <div class="hero-wrapper">
+      <div class="hero-glow"></div>
+      <section class="hero">
+        <span class="kicker">Infraestructura abierta de direccionamiento</span>
+        <h1>Venezuela no tiene un sistema de direcciones. <span class="gradient-text">Estamos construyendo uno.</span></h1>
+        <p>"Esquina los angelitos con av. guasdualito, frente al portón rojo" no es una dirección. Es la razón por la que el comercio pierde millones, las cuadrillas no llegan a las averías, y las alcaldías no pueden cobrar impuestos. DirecciónVE es infraestructura open source, soberana y 100% offline para darle a cada metro cuadrado del país un código único.</p>
+
+        <!-- Form -->
+        <div class="form-wrapper">
+          <form id="waitlist-form" class="form-container" novalidate>
+            <input type="email" id="email" placeholder="tu@correo.com" autocomplete="email" required>
+            <button type="submit" id="submit-btn">
+              <span id="btn-text">Unirme a la lista de espera</span>
+              <span class="spinner" id="spinner"></span>
+            </button>
+          </form>
+          <p class="form-note">Open source · Basado en estándares libres · Cero dependencia externa.</p>
+          <p class="form-error" id="form-error">Ingresa un correo electrónico válido.</p>
+          <div class="form-success" id="form-success">
+            <div class="check">✓</div>
+            <p><strong>¡Listo!</strong> Te avisaremos cuando empecemos las pruebas en tu zona.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Tech logos -->
+    <div class="social-proof">
+      <p>Construido sobre</p>
+      <div class="tech-logos">
+        <span>OpenStreetMap</span>
+        <span>Plus Codes (OLC)</span>
+        <span>PostGIS</span>
+        <span>Llama / Mistral</span>
+        <span>MapLibre</span>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <section>
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-value">3 metros</div>
+          <div class="stat-label">de precisión por código generado</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">100% Offline</div>
+          <div class="stat-label">corre en servidores locales, sin internet</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">0 dependencias</div>
+          <div class="stat-label">de servicios extranjeros o sancionables</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features-section">
+      <p class="section-label">Stack 100% independiente</p>
+      <h2 class="section-title">Infraestructura real, no otra app.</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🗺️</div>
+          <h3>Mapas propios con Open Location Code.</h3>
+          <p>El algoritmo de Plus Codes de Google es open source (Apache 2.0). Lo extraemos, lo adaptamos y lo desplegamos sobre OpenStreetMap con PostGIS. Cada dirección del país se convierte en un código métrico único — sin pasar por servidores extranjeros</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🧠</div>
+          <h3>Traductor Criollo con IA local.</h3>
+          <p>Un modelo de lenguaje ligero (Llama / Mistral) corriendo en servidores nacionales, entrenado para entender "frente al portón rojo" y traducirlo a coordenadas exactas. Sin APIs externas, sin regulaciones cruzadas.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🏛️</div>
+          <h3>API lista para el Estado.</h3>
+          <p>Catastro digital para alcaldías que necesitan recaudar. Geolocalización exacta para cuadrillas de Corpoelec y Cantv. Un módulo que se integra a cualquier sistema público existente y funciona desde el día uno.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bottom CTA -->
+    <section class="cta-bottom">
+      <div class="cta-bottom-glow"></div>
+      <h2>El cambio empieza con un registro.</h2>
+      <p>Sé parte de los primeros en probar la infraestructura que Venezuela necesita.</p>
+      <div class="form-wrapper">
+        <a href="#" onclick="document.getElementById('email').focus();window.scrollTo({top:0,behavior:'smooth'});return false;" style="display:inline-flex;align-items:center;gap:8px;padding:14px 32px;font-size:0.95rem;font-weight:600;font-family:inherit;color:#fff;background:linear-gradient(135deg,#635bff,#0ea5e9);border-radius:12px;text-decoration:none;transition:opacity 0.2s,transform 0.15s;" onmouseover="this.style.opacity='0.9';this.style.transform='translateY(-1px)'" onmouseout="this.style.opacity='1';this.style.transform='none'">Unirme a la lista de espera ↑</a>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>DirecciónVE — Infraestructura abierta de direccionamiento para Venezuela.</p>
+  </footer>
+
+  <script>
+    (function () {
+      var GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyd_12RPJJXSOdKEqCixIjs7xn1UnkALs-bgNpTZHW2DF0PPsgdT5AZIcrMt1EWtgDP/exec';
+
+      var form = document.getElementById('waitlist-form');
+      var emailInput = document.getElementById('email');
+      var submitBtn = document.getElementById('submit-btn');
+      var btnText = document.getElementById('btn-text');
+      var spinner = document.getElementById('spinner');
+      var errorMsg = document.getElementById('form-error');
+      var successMsg = document.getElementById('form-success');
+
+      var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      function showError(msg) {
+        errorMsg.textContent = msg;
+        errorMsg.style.display = 'block';
+      }
+
+      function resetBtn() {
+        submitBtn.disabled = false;
+        btnText.textContent = 'Unirme a la lista de espera';
+        spinner.style.display = 'none';
+      }
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        errorMsg.style.display = 'none';
+
+        var email = emailInput.value.trim();
+
+        if (!email || !EMAIL_RE.test(email)) {
+          showError('Ingresa un correo electrónico válido.');
+          return;
+        }
+
+        submitBtn.disabled = true;
+        btnText.textContent = 'Registrando…';
+        spinner.style.display = 'inline-block';
+
+        fetch(GOOGLE_SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: 'email=' + encodeURIComponent(email)
+        })
+        .then(function () {
+          form.style.display = 'none';
+          document.querySelector('.form-note').style.display = 'none';
+          successMsg.style.display = 'block';
+        })
+        .catch(function () {
+          showError('Error de conexión. Intenta de nuevo.');
+          resetBtn();
+        });
+      });
+    })();
+  </script>
+
+</body>
+</html>
