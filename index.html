@@ -403,6 +403,74 @@
       padding: 100px 0;
     }
 
+    /* — Callout — */
+    .callout {
+      position: relative;
+      padding: 100px 0;
+    }
+
+    .callout-card {
+      position: relative;
+      border: 1px solid rgba(244, 63, 94, 0.15);
+      border-radius: var(--radius-lg);
+      padding: 48px 40px;
+      background: linear-gradient(135deg, rgba(244, 63, 94, 0.04), rgba(168, 85, 247, 0.03));
+      overflow: hidden;
+    }
+
+    .callout-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #f43f5e, #a855f7);
+    }
+
+    .callout-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #f43f5e;
+      margin-bottom: 20px;
+    }
+
+    .callout-label::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #f43f5e;
+    }
+
+    .callout-card h2 {
+      font-size: clamp(1.4rem, 3.5vw, 2rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      margin-bottom: 20px;
+      max-width: 700px;
+    }
+
+    .callout-card > p {
+      font-size: clamp(0.95rem, 2vw, 1.05rem);
+      color: var(--text-secondary);
+      line-height: 1.75;
+      max-width: 680px;
+    }
+
+    @media (max-width: 768px) {
+      .callout-card {
+        padding: 32px 24px;
+      }
+    }
+
     .section-label {
       font-size: 0.75rem;
       font-weight: 600;
@@ -604,7 +672,10 @@
 
   <nav>
     <a href="#" class="logo">Dirección<span>VE</span></a>
-    <a href="https://github.com" class="nav-link" target="_blank" rel="noopener noreferrer">GitHub →</a>
+    <div style="display:flex;align-items:center;gap:16px;">
+      <a href="demo.html" class="nav-link" style="border-color:rgba(99,91,255,0.3);color:#a78bfa;">Probar demo →</a>
+      <a href="https://github.com" class="nav-link" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </div>
   </nav>
 
   <main>
@@ -652,8 +723,8 @@
     <section>
       <div class="stats">
         <div class="stat">
-          <div class="stat-value">3 metros</div>
-          <div class="stat-label">de precisión por código generado</div>
+          <div class="stat-value">~14 metros</div>
+          <div class="stat-label">por defecto, customizable hasta ~3m</div>
         </div>
         <div class="stat">
           <div class="stat-value">100% Offline</div>
@@ -663,6 +734,15 @@
           <div class="stat-value">0 dependencias</div>
           <div class="stat-label">de servicios extranjeros o sancionables</div>
         </div>
+      </div>
+    </section>
+
+    <!-- Earthquake callout -->
+    <section class="callout">
+      <div class="callout-card">
+        <p class="callout-label">Terremoto 2026</p>
+        <h2>El día del terremoto se crearon decenas de páginas para buscar desaparecidos. Ninguna sabía cómo ubicar un edificio.</h2>
+        <p>Mapas improvisados, formularios pidiendo "describe la zona", gente mandando pines de Google Maps que no cargaban sin datos móviles. Venezuela enfrentó una emergencia nacional y no existía una forma estándar de decir <em>dónde</em>. Un código único por edificio habría permitido coordinar rescate, reportar daños y ubicar personas en minutos — no en horas. Eso es lo que estamos construyendo.</p>
       </div>
     </section>
 

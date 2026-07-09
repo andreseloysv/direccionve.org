@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DirecciónVE — Demo MVP</title>
+  <meta name="theme-color" content="#0a0a0f">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📍</text></svg>">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --card: #16161f;
+      --border: rgba(255,255,255,0.08);
+      --text: #f4f4f5;
+      --text-sec: #8b8b9e;
+      --accent: #635bff;
+      --accent2: #0ea5e9;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: Inter, system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* — Top bar — */
+    .topbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 1000;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 0 16px;
+      background: rgba(10,10,15,0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .topbar-logo {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .topbar-logo span { color: var(--accent); }
+
+    .topbar-badge {
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 100px;
+      background: rgba(99,91,255,0.15);
+      color: var(--accent);
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
+    .search-box {
+      flex: 1;
+      max-width: 420px;
+      position: relative;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 10px 14px 10px 36px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-box input:focus {
+      border-color: rgba(99,91,255,0.4);
+    }
+
+    .search-box input::placeholder { color: var(--text-sec); opacity: 0.5; }
+
+    .search-box .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.8rem;
+      opacity: 0.4;
+    }
+
+    .topbar-link {
+      font-size: 0.8rem;
+      color: var(--text-sec);
+      text-decoration: none;
+      white-space: nowrap;
+      margin-left: auto;
+    }
+
+    .topbar-link:hover { color: var(--text); }
+
+    /* — Map — */
+    #map {
+      position: fixed;
+      top: 56px; left: 0; right: 0; bottom: 0;
+    }
+
+    /* Override Leaflet styles for dark mode */
+    .leaflet-container { background: var(--bg); }
+    .leaflet-control-zoom { border: none !important; }
+    .leaflet-control-zoom a {
+      background: var(--surface) !important;
+      color: var(--text) !important;
+      border: 1px solid var(--border) !important;
+      width: 32px !important;
+      height: 32px !important;
+      line-height: 32px !important;
+      font-size: 16px !important;
+    }
+    .leaflet-control-zoom a:hover {
+      background: var(--card) !important;
+    }
+    .leaflet-control-zoom-in {
+      border-radius: 8px 8px 0 0 !important;
+    }
+    .leaflet-control-zoom-out {
+      border-radius: 0 0 8px 8px !important;
+    }
+    .leaflet-control-attribution {
+      background: rgba(10,10,15,0.7) !important;
+      color: var(--text-sec) !important;
+      font-size: 10px !important;
+    }
+    .leaflet-control-attribution a { color: var(--accent) !important; }
+
+    /* — Info panel — */
+    .info-panel {
+      position: fixed;
+      bottom: 24px;
+      left: 24px;
+      z-index: 1000;
+      width: 320px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      transition: transform 0.3s, opacity 0.3s;
+    }
+
+    .info-panel.hidden {
+      transform: translateY(20px);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .info-panel-header {
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .info-panel-header small {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-sec);
+    }
+
+    .plus-code-display {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .plus-code-value {
+      font-size: 1.4rem;
+      font-weight: 800;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      letter-spacing: 0.04em;
+      background: linear-gradient(135deg, #635bff, #0ea5e9);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .copy-btn {
+      padding: 6px 10px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      font-family: inherit;
+      color: var(--text-sec);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .copy-btn:hover {
+      color: var(--text);
+      border-color: rgba(255,255,255,0.15);
+    }
+
+    .copy-btn.copied {
+      color: #34d399;
+      border-color: rgba(52,211,153,0.3);
+    }
+
+    .info-panel-body {
+      padding: 14px 20px 16px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+    }
+
+    .info-row label {
+      font-size: 0.75rem;
+      color: var(--text-sec);
+    }
+
+    .info-row span {
+      font-size: 0.8rem;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      color: var(--text);
+    }
+
+    .info-resolution {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--text-sec);
+    }
+
+    .info-resolution strong {
+      color: var(--accent2);
+    }
+
+    /* — Welcome overlay — */
+    .welcome {
+      position: fixed;
+      bottom: 24px;
+      left: 24px;
+      z-index: 999;
+      width: 320px;
+      padding: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      transition: transform 0.3s, opacity 0.3s;
+    }
+
+    .welcome h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .welcome p {
+      font-size: 0.85rem;
+      color: var(--text-sec);
+      line-height: 1.6;
+    }
+
+    .welcome .keys {
+      display: flex;
+      gap: 6px;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+
+    .welcome .key {
+      font-size: 0.7rem;
+      padding: 4px 10px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-sec);
+    }
+
+    .welcome.hidden {
+      transform: translateY(20px);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* — Grid overlay label — */
+    .grid-label {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      color: rgba(99,91,255,0.6);
+      text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+      white-space: nowrap;
+    }
+
+    /* — Marker pulse — */
+    .pulse-marker {
+      width: 16px;
+      height: 16px;
+      position: relative;
+    }
+
+    .pulse-dot {
+      width: 12px;
+      height: 12px;
+      background: var(--accent);
+      border-radius: 50%;
+      border: 2px solid #fff;
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      z-index: 2;
+    }
+
+    .pulse-ring {
+      width: 32px;
+      height: 32px;
+      border: 2px solid var(--accent);
+      border-radius: 50%;
+      position: absolute;
+      top: -8px;
+      left: -8px;
+      animation: pulse-ring 1.5s ease-out infinite;
+      z-index: 1;
+    }
+
+    @keyframes pulse-ring {
+      0% { transform: scale(0.5); opacity: 1; }
+      100% { transform: scale(1.3); opacity: 0; }
+    }
+
+    /* — Responsive — */
+    @media (max-width: 600px) {
+      .info-panel, .welcome {
+        left: 12px;
+        right: 12px;
+        width: auto;
+        bottom: 12px;
+      }
+
+      .topbar-badge { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <a href="index.html" class="topbar-logo">Dirección<span>VE</span></a>
+    <span class="topbar-badge">DEMO MVP</span>
+    <div class="search-box">
+      <span class="search-icon">⌕</span>
+      <input type="text" id="search-input" placeholder="Pega un Plus Code (ej. 772QF4WW+C6)" autocomplete="off" spellcheck="false">
+    </div>
+    <a href="index.html" class="topbar-link">← Volver</a>
+  </div>
+
+  <!-- Map -->
+  <div id="map"></div>
+
+  <!-- Welcome panel -->
+  <div class="welcome" id="welcome">
+    <h3>Toca cualquier punto del mapa</h3>
+    <p>Cada punto de Venezuela ya tiene un código único. Haz clic para descubrirlo.</p>
+    <div class="keys">
+      <span class="key">Click → ver código</span>
+      <span class="key">Buscar → pegar código</span>
+      <span class="key">Zoom → ver grid</span>
+    </div>
+  </div>
+
+  <!-- Info panel (hidden initially) -->
+  <div class="info-panel hidden" id="info-panel">
+    <div class="info-panel-header">
+      <small>Plus Code de este punto</small>
+      <div class="plus-code-display">
+        <span class="plus-code-value" id="code-display">—</span>
+        <button class="copy-btn" id="copy-btn">Copiar</button>
+      </div>
+    </div>
+    <div class="info-panel-body">
+      <div class="info-row">
+        <label>Latitud</label>
+        <span id="lat-display">—</span>
+      </div>
+      <div class="info-row">
+        <label>Longitud</label>
+        <span id="lng-display">—</span>
+      </div>
+      <div class="info-resolution">
+        Área de <strong id="res-display">~14m × 14m</strong> — cada código cubre este cuadrado exacto
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* =========================================================
+       Open Location Code (Plus Codes) — inline implementation
+       Based on Google's OLC algorithm (Apache 2.0)
+       ========================================================= */
+    var OLC = (function () {
+      var A = '23456789CFGHJMPQRVWX';
+      var R = [20, 1, .05, .0025, .000125];
+
+      function encode(lat, lng, len) {
+        len = len || 10;
+        lat = Math.min(90, Math.max(-90, lat));
+        while (lng < -180) lng += 360;
+        while (lng >= 180) lng -= 360;
+        if (lat === 90) lat -= .9 * R[Math.floor((Math.min(len, 10) - 1) / 2)];
+
+        var code = '', aLat = lat + 90, aLng = lng + 180, i = 0;
+
+        while (i < len) {
+          if (i < 10) {
+            var p = i / 2, r = R[p];
+            var dLat = Math.min(Math.floor(aLat / r), 19);
+            var dLng = Math.min(Math.floor(aLng / r), 19);
+            aLat -= dLat * r;
+            aLng -= dLng * r;
+            code += A[dLat] + A[dLng];
+            i += 2;
+            if (i === 8) code += '+';
+          } else {
+            var rLat = R[4], rLng = R[4];
+            for (var g = 10; g < i; g++) { rLat /= 5; rLng /= 4; }
+            var gLatR = rLat / 5, gLngR = rLng / 4;
+            var row = Math.min(Math.floor(aLat / gLatR), 4);
+            var col = Math.min(Math.floor(aLng / gLngR), 3);
+            aLat -= row * gLatR;
+            aLng -= col * gLngR;
+            code += A[row * 4 + col];
+            i++;
+          }
+        }
+        if (code.indexOf('+') < 0) code += '+';
+        return code;
+      }
+
+      function decode(code) {
+        code = code.toUpperCase().replace(/\s/g, '');
+        var clean = code.replace('+', '');
+        var lat = -90, lng = -180, latR, lngR;
+
+        var pairLen = Math.min(clean.length, 10);
+        for (var i = 0; i < pairLen; i += 2) {
+          var p = i / 2;
+          latR = R[p]; lngR = R[p];
+          lat += A.indexOf(clean[i]) * latR;
+          lng += A.indexOf(clean[i + 1]) * lngR;
+        }
+
+        if (clean.length <= 10) {
+          var p2 = Math.floor((pairLen - 1) / 2);
+          latR = R[p2]; lngR = R[p2];
+        }
+
+        for (var i = 10; i < clean.length; i++) {
+          var d = A.indexOf(clean[i]);
+          if (d < 0) break;
+          latR /= 5; lngR /= 4;
+          lat += Math.floor(d / 4) * latR;
+          lng += (d % 4) * lngR;
+        }
+
+        return {
+          lat: lat + latR / 2,
+          lng: lng + lngR / 2,
+          latLo: lat, lngLo: lng,
+          latHi: lat + latR, lngHi: lng + lngR,
+          latR: latR, lngR: lngR
+        };
+      }
+
+      function isValid(code) {
+        if (!code || code.length < 8) return false;
+        code = code.toUpperCase().replace(/\s/g, '');
+        if (code.indexOf('+') < 0) return false;
+        var clean = code.replace('+', '');
+        for (var i = 0; i < clean.length; i++) {
+          if (A.indexOf(clean[i]) < 0) return false;
+        }
+        return true;
+      }
+
+      function shorten(code) {
+        var parts = code.split('+');
+        return parts[0].slice(-4) + '+' + parts[1];
+      }
+
+      return { encode: encode, decode: decode, isValid: isValid, shorten: shorten };
+    })();
+
+
+    /* =========================================================
+       Map setup
+       ========================================================= */
+    var map = L.map('map', {
+      center: [10.4961, -66.8544], // Plaza Altamira, Caracas
+      zoom: 16,
+      zoomControl: true,
+      attributionControl: true
+    });
+
+    // Dark tiles from CartoDB (free, no API key)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 20
+    }).addTo(map);
+
+    // State
+    var currentMarker = null;
+    var gridLayer = L.layerGroup().addTo(map);
+    var codeLength = 10; // ~14m x 14m default
+
+    // DOM refs
+    var welcomeEl = document.getElementById('welcome');
+    var panelEl = document.getElementById('info-panel');
+    var codeEl = document.getElementById('code-display');
+    var latEl = document.getElementById('lat-display');
+    var lngEl = document.getElementById('lng-display');
+    var resEl = document.getElementById('res-display');
+    var copyBtn = document.getElementById('copy-btn');
+    var searchInput = document.getElementById('search-input');
+
+
+    /* =========================================================
+       Custom marker
+       ========================================================= */
+    function createPulseIcon() {
+      return L.divIcon({
+        className: '',
+        html: '<div class="pulse-marker"><div class="pulse-ring"></div><div class="pulse-dot"></div></div>',
+        iconSize: [16, 16],
+        iconAnchor: [8, 8]
+      });
+    }
+
+
+    /* =========================================================
+       Grid overlay
+       ========================================================= */
+    function drawGrid() {
+      gridLayer.clearLayers();
+      var zoom = map.getZoom();
+      if (zoom < 15) return; // Only show grid when zoomed in
+
+      var bounds = map.getBounds();
+      var gridCodeLen = zoom >= 18 ? 11 : 10;
+
+      // Determine grid resolution
+      var res = [20, 1, .05, .0025, .000125];
+      var latStep, lngStep;
+      if (gridCodeLen <= 10) {
+        var p = Math.floor((gridCodeLen - 1) / 2);
+        latStep = res[p];
+        lngStep = res[p];
+      } else {
+        latStep = res[4];
+        lngStep = res[4];
+        for (var g = 10; g < gridCodeLen; g++) {
+          latStep /= 5;
+          lngStep /= 4;
+        }
+      }
+
+      var south = Math.floor(bounds.getSouth() / latStep) * latStep;
+      var west = Math.floor(bounds.getWest() / lngStep) * lngStep;
+      var north = bounds.getNorth();
+      var east = bounds.getEast();
+
+      var maxCells = 400; // Performance limit
+      var count = 0;
+
+      for (var lat = south; lat <= north && count < maxCells; lat += latStep) {
+        for (var lng = west; lng <= east && count < maxCells; lng += lngStep) {
+          var rect = L.rectangle(
+            [[lat, lng], [lat + latStep, lng + lngStep]],
+            {
+              color: 'rgba(99,91,255,0.25)',
+              weight: 0.5,
+              fillColor: 'transparent',
+              fillOpacity: 0,
+              interactive: false
+            }
+          );
+          gridLayer.addLayer(rect);
+
+          // Add code label at high zoom
+          if (zoom >= 17) {
+            var code = OLC.encode(lat + latStep / 2, lng + lngStep / 2, gridCodeLen);
+            var short = OLC.shorten(code);
+            var label = L.marker([lat + latStep / 2, lng + lngStep / 2], {
+              icon: L.divIcon({
+                className: 'grid-label',
+                html: short,
+                iconSize: [60, 14],
+                iconAnchor: [30, 7]
+              }),
+              interactive: false
+            });
+            gridLayer.addLayer(label);
+          }
+          count++;
+        }
+      }
+    }
+
+    map.on('moveend', drawGrid);
+    map.on('zoomend', drawGrid);
+    drawGrid();
+
+
+    /* =========================================================
+       Click to get code
+       ========================================================= */
+    map.on('click', function (e) {
+      var lat = e.latlng.lat;
+      var lng = e.latlng.lng;
+      var code = OLC.encode(lat, lng, codeLength);
+      var decoded = OLC.decode(code);
+
+      // Update marker
+      if (currentMarker) map.removeLayer(currentMarker);
+      currentMarker = L.marker([decoded.lat, decoded.lng], { icon: createPulseIcon() }).addTo(map);
+
+      // Draw the code's bounding box
+      if (window._codeRect) map.removeLayer(window._codeRect);
+      window._codeRect = L.rectangle(
+        [[decoded.latLo, decoded.lngLo], [decoded.latHi, decoded.lngHi]],
+        {
+          color: '#635bff',
+          weight: 2,
+          fillColor: '#635bff',
+          fillOpacity: 0.08,
+          interactive: false
+        }
+      ).addTo(map);
+
+      // Compute resolution in meters
+      var latMeters = (decoded.latR * 111320).toFixed(0);
+      var lngMeters = (decoded.lngR * 111320 * Math.cos(lat * Math.PI / 180)).toFixed(0);
+
+      // Update panel
+      codeEl.textContent = code;
+      latEl.textContent = lat.toFixed(6);
+      lngEl.textContent = lng.toFixed(6);
+      resEl.textContent = '~' + latMeters + 'm × ' + lngMeters + 'm';
+
+      // Show panel, hide welcome
+      welcomeEl.classList.add('hidden');
+      panelEl.classList.remove('hidden');
+
+      // Reset copy button
+      copyBtn.textContent = 'Copiar';
+      copyBtn.classList.remove('copied');
+    });
+
+
+    /* =========================================================
+       Copy to clipboard
+       ========================================================= */
+    copyBtn.addEventListener('click', function () {
+      var code = codeEl.textContent;
+      if (!code || code === '—') return;
+      navigator.clipboard.writeText(code).then(function () {
+        copyBtn.textContent = '¡Copiado!';
+        copyBtn.classList.add('copied');
+        setTimeout(function () {
+          copyBtn.textContent = 'Copiar';
+          copyBtn.classList.remove('copied');
+        }, 2000);
+      });
+    });
+
+
+    /* =========================================================
+       Search by Plus Code
+       ========================================================= */
+    searchInput.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter') return;
+      var val = searchInput.value.trim();
+      if (!OLC.isValid(val)) {
+        searchInput.style.borderColor = '#f43f5e';
+        setTimeout(function () { searchInput.style.borderColor = ''; }, 1500);
+        return;
+      }
+
+      var decoded = OLC.decode(val);
+      map.flyTo([decoded.lat, decoded.lng], 18, { duration: 1.2 });
+
+      // Place marker
+      if (currentMarker) map.removeLayer(currentMarker);
+      currentMarker = L.marker([decoded.lat, decoded.lng], { icon: createPulseIcon() }).addTo(map);
+
+      // Draw bounding box
+      if (window._codeRect) map.removeLayer(window._codeRect);
+      window._codeRect = L.rectangle(
+        [[decoded.latLo, decoded.lngLo], [decoded.latHi, decoded.lngHi]],
+        {
+          color: '#635bff',
+          weight: 2,
+          fillColor: '#635bff',
+          fillOpacity: 0.08,
+          interactive: false
+        }
+      ).addTo(map);
+
+      var latMeters = (decoded.latR * 111320).toFixed(0);
+      var lngMeters = (decoded.lngR * 111320 * Math.cos(decoded.lat * Math.PI / 180)).toFixed(0);
+
+      codeEl.textContent = val.toUpperCase();
+      latEl.textContent = decoded.lat.toFixed(6);
+      lngEl.textContent = decoded.lng.toFixed(6);
+      resEl.textContent = '~' + latMeters + 'm × ' + lngMeters + 'm';
+
+      welcomeEl.classList.add('hidden');
+      panelEl.classList.remove('hidden');
+
+      copyBtn.textContent = 'Copiar';
+      copyBtn.classList.remove('copied');
+      searchInput.blur();
+    });
+  </script>
+</body>
+</html>

@@ -7,6 +7,7 @@ Infraestructura de direccionamiento digital, abierta y soberana para Venezuela.
 Venezuela no tiene un sistema estandarizado de direcciones. DirecciónVE es un proyecto open source para darle a cada metro cuadrado del país un código único, verificable y que funcione 100% offline.
 
 **Website:** [direccionve.org](https://direccionve.org)
+**Demo:** [direccionve.org/demo.html](https://direccionve.org/demo.html)
 
 ---
 
@@ -100,7 +101,7 @@ La tecnología base existe (OLC es open source). Lo que falta es la implementaci
 - [ ] Módulo que se integra a sistemas de gestión de reportes (tipo VenApp)
 - [ ] Cuando un ciudadano reporta una avería, el sistema autogenera el Plus Code del punto
 - [ ] Las cuadrillas de Corpoelec/Cantv reciben el código exacto en vez de "frente a la casa de la señora María"
-- [ ] Panel de tracking de cuadrillas con resolución de 3 metros
+- [ ] Panel de tracking de cuadrillas (precisión configurable: ~14m default, hasta ~3m)
 
 ### Fase 4 — Infraestructura Soberana
 **Objetivo:** Despliegue en servidores nacionales, independiente de servicios extranjeros.
