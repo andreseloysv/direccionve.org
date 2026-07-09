@@ -103,6 +103,43 @@
       opacity: 0.4;
     }
 
+    .search-results {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0; right: 0;
+      max-height: 280px;
+      overflow-y: auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      z-index: 1001;
+    }
+
+    .search-results.hidden { display: none; }
+
+    .search-result-item {
+      padding: 10px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+    }
+
+    .search-result-item:last-child { border-bottom: none; }
+    .search-result-item:hover { background: var(--card); }
+
+    .search-result-item .result-address {
+      font-size: 0.82rem;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+
+    .search-result-item .result-code {
+      font-size: 0.72rem;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      color: var(--accent);
+    }
+
     .topbar-link {
       font-size: 0.8rem;
       color: var(--text-sec);
@@ -372,7 +409,8 @@
     <span class="topbar-badge">DEMO MVP</span>
     <div class="search-box">
       <span class="search-icon">⌕</span>
-      <input type="text" id="search-input" placeholder="Pega un Plus Code (ej. 772QF4WW+C6)" autocomplete="off" spellcheck="false">
+      <input type="text" id="search-input" placeholder="Busca: 'Caracas Av. Bolívar' o pega un Plus Code" autocomplete="off" spellcheck="false">
+      <div class="search-results hidden" id="search-results"></div>
     </div>
     <a href="index.html" class="topbar-link">← Volver</a>
   </div>
@@ -401,6 +439,10 @@
       </div>
     </div>
     <div class="info-panel-body">
+      <div class="info-row" id="address-row" style="display:none;padding-bottom:8px;margin-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.06)">
+        <label>Dirección</label>
+        <span id="address-display" style="font-family:inherit;font-size:0.78rem;text-align:right;max-width:200px">—</span>
+      </div>
       <div class="info-row">
         <label>Latitud</label>
         <span id="lat-display">—</span>
@@ -415,126 +457,41 @@
     </div>
   </div>
 
+  <script src="direccionve.js"></script>
   <script>
     /* =========================================================
-       Open Location Code (Plus Codes) — inline implementation
-       Based on Google's OLC algorithm (Apache 2.0)
+       Init: load data and initialize engine
        ========================================================= */
-    var OLC = (function () {
-      var A = '23456789CFGHJMPQRVWX';
-      var R = [20, 1, .05, .0025, .000125];
-
-      function encode(lat, lng, len) {
-        len = len || 10;
-        lat = Math.min(90, Math.max(-90, lat));
-        while (lng < -180) lng += 360;
-        while (lng >= 180) lng -= 360;
-        if (lat === 90) lat -= .9 * R[Math.floor((Math.min(len, 10) - 1) / 2)];
-
-        var code = '', aLat = lat + 90, aLng = lng + 180, i = 0;
-
-        while (i < len) {
-          if (i < 10) {
-            var p = i / 2, r = R[p];
-            var dLat = Math.min(Math.floor(aLat / r), 19);
-            var dLng = Math.min(Math.floor(aLng / r), 19);
-            aLat -= dLat * r;
-            aLng -= dLng * r;
-            code += A[dLat] + A[dLng];
-            i += 2;
-            if (i === 8) code += '+';
-          } else {
-            var rLat = R[4], rLng = R[4];
-            for (var g = 10; g < i; g++) { rLat /= 5; rLng /= 4; }
-            var gLatR = rLat / 5, gLngR = rLng / 4;
-            var row = Math.min(Math.floor(aLat / gLatR), 4);
-            var col = Math.min(Math.floor(aLng / gLngR), 3);
-            aLat -= row * gLatR;
-            aLng -= col * gLngR;
-            code += A[row * 4 + col];
-            i++;
-          }
-        }
-        if (code.indexOf('+') < 0) code += '+';
-        return code;
-      }
-
-      function decode(code) {
-        code = code.toUpperCase().replace(/\s/g, '');
-        var clean = code.replace('+', '');
-        var lat = -90, lng = -180, latR, lngR;
-
-        var pairLen = Math.min(clean.length, 10);
-        for (var i = 0; i < pairLen; i += 2) {
-          var p = i / 2;
-          latR = R[p]; lngR = R[p];
-          lat += A.indexOf(clean[i]) * latR;
-          lng += A.indexOf(clean[i + 1]) * lngR;
-        }
-
-        if (clean.length <= 10) {
-          var p2 = Math.floor((pairLen - 1) / 2);
-          latR = R[p2]; lngR = R[p2];
-        }
-
-        for (var i = 10; i < clean.length; i++) {
-          var d = A.indexOf(clean[i]);
-          if (d < 0) break;
-          latR /= 5; lngR /= 4;
-          lat += Math.floor(d / 4) * latR;
-          lng += (d % 4) * lngR;
-        }
-
-        return {
-          lat: lat + latR / 2,
-          lng: lng + lngR / 2,
-          latLo: lat, lngLo: lng,
-          latHi: lat + latR, lngHi: lng + lngR,
-          latR: latR, lngR: lngR
-        };
-      }
-
-      function isValid(code) {
-        if (!code || code.length < 8) return false;
-        code = code.toUpperCase().replace(/\s/g, '');
-        if (code.indexOf('+') < 0) return false;
-        var clean = code.replace('+', '');
-        for (var i = 0; i < clean.length; i++) {
-          if (A.indexOf(clean[i]) < 0) return false;
-        }
-        return true;
-      }
-
-      function shorten(code) {
-        var parts = code.split('+');
-        return parts[0].slice(-4) + '+' + parts[1];
-      }
-
-      return { encode: encode, decode: decode, isValid: isValid, shorten: shorten };
-    })();
+    var dataReady = false;
+    Promise.all([
+      fetch('data-houses.json').then(function (r) { return r.json(); }),
+      fetch('data-streets.json').then(function (r) { return r.json(); })
+    ]).then(function (data) {
+      DireccionVE.init(data[0], data[1]);
+      dataReady = true;
+      var stats = DireccionVE.getStats();
+      console.log('DirecciónVE cargado:', stats.houses, 'puntos,', stats.uniqueStreets, 'calles');
+    });
 
 
     /* =========================================================
        Map setup
        ========================================================= */
     var map = L.map('map', {
-      center: [10.4961, -66.8544], // Plaza Altamira, Caracas
+      center: [10.4961, -66.8544],
       zoom: 16,
       zoomControl: true,
       attributionControl: true
     });
 
-    // Dark tiles from CartoDB (free, no API key)
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
       subdomains: 'abcd',
       maxZoom: 20
     }).addTo(map);
 
-    // State
     var currentMarker = null;
     var gridLayer = L.layerGroup().addTo(map);
-    var codeLength = 10; // ~14m x 14m default
 
     // DOM refs
     var welcomeEl = document.getElementById('welcome');
@@ -543,12 +500,15 @@
     var latEl = document.getElementById('lat-display');
     var lngEl = document.getElementById('lng-display');
     var resEl = document.getElementById('res-display');
+    var addressRow = document.getElementById('address-row');
+    var addressEl = document.getElementById('address-display');
     var copyBtn = document.getElementById('copy-btn');
     var searchInput = document.getElementById('search-input');
+    var searchResults = document.getElementById('search-results');
 
 
     /* =========================================================
-       Custom marker
+       Helpers
        ========================================================= */
     function createPulseIcon() {
       return L.divIcon({
@@ -559,6 +519,39 @@
       });
     }
 
+    function showPoint(lat, lng, code, address) {
+      var decoded = DireccionVE.decode(code);
+
+      if (currentMarker) map.removeLayer(currentMarker);
+      currentMarker = L.marker([lat, lng], { icon: createPulseIcon() }).addTo(map);
+
+      if (window._codeRect) map.removeLayer(window._codeRect);
+      window._codeRect = L.rectangle(
+        [[decoded.latLo, decoded.lngLo], [decoded.latHi, decoded.lngHi]],
+        { color: '#635bff', weight: 2, fillColor: '#635bff', fillOpacity: 0.08, interactive: false }
+      ).addTo(map);
+
+      var latMeters = (decoded.latR * 111320).toFixed(0);
+      var lngMeters = (decoded.lngR * 111320 * Math.cos(lat * Math.PI / 180)).toFixed(0);
+
+      codeEl.textContent = code;
+      latEl.textContent = lat.toFixed(6);
+      lngEl.textContent = lng.toFixed(6);
+      resEl.textContent = '~' + latMeters + 'm × ' + lngMeters + 'm';
+
+      if (address) {
+        addressEl.textContent = address;
+        addressRow.style.display = 'flex';
+      } else {
+        addressRow.style.display = 'none';
+      }
+
+      welcomeEl.classList.add('hidden');
+      panelEl.classList.remove('hidden');
+      copyBtn.textContent = 'Copiar';
+      copyBtn.classList.remove('copied');
+    }
+
 
     /* =========================================================
        Grid overlay
@@ -566,63 +559,38 @@
     function drawGrid() {
       gridLayer.clearLayers();
       var zoom = map.getZoom();
-      if (zoom < 15) return; // Only show grid when zoomed in
+      if (zoom < 15) return;
 
       var bounds = map.getBounds();
       var gridCodeLen = zoom >= 18 ? 11 : 10;
-
-      // Determine grid resolution
       var res = [20, 1, .05, .0025, .000125];
       var latStep, lngStep;
+
       if (gridCodeLen <= 10) {
         var p = Math.floor((gridCodeLen - 1) / 2);
-        latStep = res[p];
-        lngStep = res[p];
+        latStep = res[p]; lngStep = res[p];
       } else {
-        latStep = res[4];
-        lngStep = res[4];
-        for (var g = 10; g < gridCodeLen; g++) {
-          latStep /= 5;
-          lngStep /= 4;
-        }
+        latStep = res[4]; lngStep = res[4];
+        for (var g = 10; g < gridCodeLen; g++) { latStep /= 5; lngStep /= 4; }
       }
 
       var south = Math.floor(bounds.getSouth() / latStep) * latStep;
       var west = Math.floor(bounds.getWest() / lngStep) * lngStep;
-      var north = bounds.getNorth();
-      var east = bounds.getEast();
-
-      var maxCells = 400; // Performance limit
       var count = 0;
 
-      for (var lat = south; lat <= north && count < maxCells; lat += latStep) {
-        for (var lng = west; lng <= east && count < maxCells; lng += lngStep) {
-          var rect = L.rectangle(
+      for (var lat = south; lat <= bounds.getNorth() && count < 400; lat += latStep) {
+        for (var lng = west; lng <= bounds.getEast() && count < 400; lng += lngStep) {
+          gridLayer.addLayer(L.rectangle(
             [[lat, lng], [lat + latStep, lng + lngStep]],
-            {
-              color: 'rgba(99,91,255,0.25)',
-              weight: 0.5,
-              fillColor: 'transparent',
-              fillOpacity: 0,
-              interactive: false
-            }
-          );
-          gridLayer.addLayer(rect);
-
-          // Add code label at high zoom
+            { color: 'rgba(99,91,255,0.25)', weight: 0.5, fillOpacity: 0, interactive: false }
+          ));
           if (zoom >= 17) {
-            var code = OLC.encode(lat + latStep / 2, lng + lngStep / 2, gridCodeLen);
-            var short = OLC.shorten(code);
-            var label = L.marker([lat + latStep / 2, lng + lngStep / 2], {
-              icon: L.divIcon({
-                className: 'grid-label',
-                html: short,
-                iconSize: [60, 14],
-                iconAnchor: [30, 7]
-              }),
+            var c = DireccionVE.encode(lat + latStep / 2, lng + lngStep / 2, gridCodeLen);
+            var short = c.split('+')[0].slice(-4) + '+' + c.split('+')[1];
+            gridLayer.addLayer(L.marker([lat + latStep / 2, lng + lngStep / 2], {
+              icon: L.divIcon({ className: 'grid-label', html: short, iconSize: [60, 14], iconAnchor: [30, 7] }),
               interactive: false
-            });
-            gridLayer.addLayer(label);
+            }));
           }
           count++;
         }
@@ -635,48 +603,105 @@
 
 
     /* =========================================================
-       Click to get code
+       Click map → get code + nearest address
        ========================================================= */
     map.on('click', function (e) {
-      var lat = e.latlng.lat;
-      var lng = e.latlng.lng;
-      var code = OLC.encode(lat, lng, codeLength);
-      var decoded = OLC.decode(code);
+      var lat = e.latlng.lat, lng = e.latlng.lng;
+      var code = DireccionVE.encode(lat, lng, 10);
 
-      // Update marker
-      if (currentMarker) map.removeLayer(currentMarker);
-      currentMarker = L.marker([decoded.lat, decoded.lng], { icon: createPulseIcon() }).addTo(map);
-
-      // Draw the code's bounding box
-      if (window._codeRect) map.removeLayer(window._codeRect);
-      window._codeRect = L.rectangle(
-        [[decoded.latLo, decoded.lngLo], [decoded.latHi, decoded.lngHi]],
-        {
-          color: '#635bff',
-          weight: 2,
-          fillColor: '#635bff',
-          fillOpacity: 0.08,
-          interactive: false
+      // Try to resolve nearest known address
+      var address = null;
+      if (dataReady) {
+        var resolved = DireccionVE.resolve(code);
+        if (resolved && resolved.address && resolved.distance < 200) {
+          address = resolved.address + ' (~' + resolved.distance + 'm)';
         }
-      ).addTo(map);
+      }
 
-      // Compute resolution in meters
-      var latMeters = (decoded.latR * 111320).toFixed(0);
-      var lngMeters = (decoded.lngR * 111320 * Math.cos(lat * Math.PI / 180)).toFixed(0);
+      map.panTo([lat, lng]);
+      showPoint(lat, lng, code, address);
+    });
 
-      // Update panel
-      codeEl.textContent = code;
-      latEl.textContent = lat.toFixed(6);
-      lngEl.textContent = lng.toFixed(6);
-      resEl.textContent = '~' + latMeters + 'm × ' + lngMeters + 'm';
 
-      // Show panel, hide welcome
-      welcomeEl.classList.add('hidden');
-      panelEl.classList.remove('hidden');
+    /* =========================================================
+       Search: address → code, code → address
+       ========================================================= */
+    var searchTimeout;
 
-      // Reset copy button
-      copyBtn.textContent = 'Copiar';
-      copyBtn.classList.remove('copied');
+    searchInput.addEventListener('input', function () {
+      clearTimeout(searchTimeout);
+      var val = searchInput.value.trim();
+
+      if (val.length < 2) {
+        searchResults.classList.add('hidden');
+        return;
+      }
+
+      searchTimeout = setTimeout(function () {
+        if (!dataReady) return;
+
+        // If it's a Plus Code, resolve it directly
+        if (DireccionVE.isValidCode(val)) {
+          var resolved = DireccionVE.resolve(val);
+          searchResults.innerHTML = '<div class="search-result-item" data-lat="' + resolved.lat + '" data-lng="' + resolved.lng + '" data-code="' + resolved.code + '" data-address="' + (resolved.address || '') + '">'
+            + '<div class="result-address">' + (resolved.address || 'Ubicación sin dirección registrada') + (resolved.distance ? ' (~' + resolved.distance + 'm)' : '') + '</div>'
+            + '<div class="result-code">' + resolved.code + '</div></div>';
+          searchResults.classList.remove('hidden');
+          return;
+        }
+
+        // Otherwise search by address text
+        var results = DireccionVE.search(val, 8);
+        if (results.length === 0) {
+          searchResults.innerHTML = '<div style="padding:12px 14px;font-size:0.8rem;color:var(--text-sec)">Sin resultados</div>';
+          searchResults.classList.remove('hidden');
+          return;
+        }
+
+        var html = '';
+        for (var i = 0; i < results.length; i++) {
+          var r = results[i];
+          html += '<div class="search-result-item" data-lat="' + r.lat + '" data-lng="' + r.lng + '" data-code="' + r.code + '" data-address="' + r.address + '">'
+            + '<div class="result-address">' + r.address + '</div>'
+            + '<div class="result-code">' + r.code + '</div></div>';
+        }
+        searchResults.innerHTML = html;
+        searchResults.classList.remove('hidden');
+      }, 200);
+    });
+
+    // Click a search result
+    searchResults.addEventListener('click', function (e) {
+      var item = e.target.closest('.search-result-item');
+      if (!item) return;
+
+      var lat = parseFloat(item.dataset.lat);
+      var lng = parseFloat(item.dataset.lng);
+      var code = item.dataset.code;
+      var address = item.dataset.address;
+
+      map.flyTo([lat, lng], 18, { duration: 1 });
+      showPoint(lat, lng, code, address);
+      searchInput.value = address || code;
+      searchResults.classList.add('hidden');
+    });
+
+    // Enter key in search
+    searchInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        var firstItem = searchResults.querySelector('.search-result-item');
+        if (firstItem) firstItem.click();
+      }
+      if (e.key === 'Escape') {
+        searchResults.classList.add('hidden');
+      }
+    });
+
+    // Close results on outside click
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.search-box')) {
+        searchResults.classList.add('hidden');
+      }
     });
 
 
@@ -689,60 +714,8 @@
       navigator.clipboard.writeText(code).then(function () {
         copyBtn.textContent = '¡Copiado!';
         copyBtn.classList.add('copied');
-        setTimeout(function () {
-          copyBtn.textContent = 'Copiar';
-          copyBtn.classList.remove('copied');
-        }, 2000);
+        setTimeout(function () { copyBtn.textContent = 'Copiar'; copyBtn.classList.remove('copied'); }, 2000);
       });
-    });
-
-
-    /* =========================================================
-       Search by Plus Code
-       ========================================================= */
-    searchInput.addEventListener('keydown', function (e) {
-      if (e.key !== 'Enter') return;
-      var val = searchInput.value.trim();
-      if (!OLC.isValid(val)) {
-        searchInput.style.borderColor = '#f43f5e';
-        setTimeout(function () { searchInput.style.borderColor = ''; }, 1500);
-        return;
-      }
-
-      var decoded = OLC.decode(val);
-      map.flyTo([decoded.lat, decoded.lng], 18, { duration: 1.2 });
-
-      // Place marker
-      if (currentMarker) map.removeLayer(currentMarker);
-      currentMarker = L.marker([decoded.lat, decoded.lng], { icon: createPulseIcon() }).addTo(map);
-
-      // Draw bounding box
-      if (window._codeRect) map.removeLayer(window._codeRect);
-      window._codeRect = L.rectangle(
-        [[decoded.latLo, decoded.lngLo], [decoded.latHi, decoded.lngHi]],
-        {
-          color: '#635bff',
-          weight: 2,
-          fillColor: '#635bff',
-          fillOpacity: 0.08,
-          interactive: false
-        }
-      ).addTo(map);
-
-      var latMeters = (decoded.latR * 111320).toFixed(0);
-      var lngMeters = (decoded.lngR * 111320 * Math.cos(decoded.lat * Math.PI / 180)).toFixed(0);
-
-      codeEl.textContent = val.toUpperCase();
-      latEl.textContent = decoded.lat.toFixed(6);
-      lngEl.textContent = decoded.lng.toFixed(6);
-      resEl.textContent = '~' + latMeters + 'm × ' + lngMeters + 'm';
-
-      welcomeEl.classList.add('hidden');
-      panelEl.classList.remove('hidden');
-
-      copyBtn.textContent = 'Copiar';
-      copyBtn.classList.remove('copied');
-      searchInput.blur();
     });
   </script>
 </body>
