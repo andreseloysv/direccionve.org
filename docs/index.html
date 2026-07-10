@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DirecciónVE — API Reference</title>
+  <meta name="description" content="Documentación de la API DireccionVE.js para desarrolladores. Busca direcciones, resuelve Plus Codes, geocodifica Venezuela.">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <meta name="theme-color" content="#0a0a0f">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --card: #16161f;
+      --border: rgba(255,255,255,0.08);
+      --text: #f4f4f5;
+      --text-sec: #8b8b9e;
+      --accent: #635bff;
+      --accent2: #0ea5e9;
+      --code-bg: #1a1a2e;
+      --radius: 8px;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      padding: 2rem 1rem;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+    a { color: var(--accent2); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #FFD200, #003DA5, #EF3340);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    h1 + p { color: var(--text-sec); margin-bottom: 2rem; }
+    h2 {
+      font-size: 1.4rem;
+      margin: 2.5rem 0 0.75rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid var(--border);
+    }
+    h3 {
+      font-size: 1.1rem;
+      margin: 1.5rem 0 0.5rem;
+      color: var(--accent2);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+    }
+    p { margin-bottom: 0.75rem; }
+    code {
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 0.88em;
+      background: var(--code-bg);
+      padding: 0.15em 0.4em;
+      border-radius: 4px;
+    }
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      overflow-x: auto;
+      margin: 0.75rem 0 1.25rem;
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+    pre code { background: none; padding: 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0.75rem 0 1.25rem;
+      font-size: 0.9rem;
+    }
+    th, td {
+      text-align: left;
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    th { color: var(--text-sec); font-weight: 500; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .badge {
+      display: inline-block;
+      background: var(--accent);
+      color: white;
+      font-size: 0.7rem;
+      padding: 0.15em 0.5em;
+      border-radius: 4px;
+      margin-left: 0.5em;
+      vertical-align: middle;
+      font-weight: 600;
+    }
+    .nav {
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2rem;
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      font-size: 0.85rem;
+      z-index: 10;
+    }
+    .nav a { color: var(--text-sec); }
+    .nav a:hover { color: var(--text); }
+    .returns { color: var(--text-sec); font-size: 0.85rem; margin-bottom: 0.5rem; }
+    hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+    @media (max-width: 600px) {
+      body { padding: 1rem 0.75rem; }
+      h1 { font-size: 1.5rem; }
+      pre { font-size: 0.8rem; padding: 0.75rem; }
+    }
+  </style>
+</head>
+<body>
+
+<h1>DirecciónVE API</h1>
+<p>Motor de resolución de direcciones para Venezuela. Cada metro cuadrado tiene un <a href="https://plus.codes">Plus Code</a> único.</p>
+
+<nav class="nav">
+  <a href="#install">Instalación</a>
+  <a href="#quickstart">Quick Start</a>
+  <a href="#init">init()</a>
+  <a href="#search">search()</a>
+  <a href="#lookup">lookup()</a>
+  <a href="#resolve">resolve()</a>
+  <a href="#suggest">suggest()</a>
+  <a href="#encode">encode()</a>
+  <a href="#decode">decode()</a>
+  <a href="#isvalidcode">isValidCode()</a>
+  <a href="#getstats">getStats()</a>
+  <a href="#data">Datos</a>
+</nav>
+
+<h2 id="install">Instalación</h2>
+<pre><code>&lt;script src="https://direccionve.org/direccionve.js"&gt;&lt;/script&gt;</code></pre>
+<p>O descárgalo y sírvelo localmente:</p>
+<pre><code>&lt;script src="/direccionve.js"&gt;&lt;/script&gt;</code></pre>
+
+<h2 id="quickstart">Quick Start</h2>
+<pre><code>// 1. Cargar datos
+const [houses, streets] = await Promise.all([
+  fetch('/data-houses.json').then(r =&gt; r.json()),
+  fetch('/data-streets.json').then(r =&gt; r.json())
+]);
+
+// 2. Inicializar
+DireccionVE.init(houses, streets);
+
+// 3. Buscar
+const results = DireccionVE.search('Altamira Caracas');
+console.log(results[0]);
+// → { address: "Av. Luis Roche, Altamira", code: "67P8GRJ5+XX", lat: 10.5, lng: -66.85 }
+
+// 4. Resolver un Plus Code
+const place = DireccionVE.resolve('67P8GRJ5+XX');
+console.log(place.address, place.distance + 'm');</code></pre>
+
+<hr>
+
+<h2>Métodos</h2>
+
+<h3 id="init">DireccionVE.init(housesData, streetsData)</h3>
+<p>Inicializa el motor. Debe llamarse antes de cualquier otra función.</p>
+<table>
+  <tr><th>Parámetro</th><th>Tipo</th><th>Descripción</th></tr>
+  <tr><td><code>housesData</code></td><td>Array</td><td>Array de <code>[zip, city, street, number, lng, lat]</code></td></tr>
+  <tr><td><code>streetsData</code></td><td>Array</td><td>Array de <code>[city, name, lng, lat]</code></td></tr>
+</table>
+<p class="returns">Retorna: <code>undefined</code></p>
+
+<h3 id="search">DireccionVE.search(query, limit?)</h3>
+<p>Búsqueda de texto libre. Tokeniza la query y puntúa por coincidencia de tokens.</p>
+<table>
+  <tr><th>Parámetro</th><th>Tipo</th><th>Default</th><th>Descripción</th></tr>
+  <tr><td><code>query</code></td><td>string</td><td>—</td><td>Texto libre: ciudad, calle, número, CP</td></tr>
+  <tr><td><code>limit</code></td><td>number</td><td>20</td><td>Máximo de resultados</td></tr>
+</table>
+<p class="returns">Retorna: <code>Array&lt;Result&gt;</code></p>
+<pre><code>DireccionVE.search('los palos grandes', 5);
+// → [{ address, code, lat, lng, type }, ...]</code></pre>
+
+<h3 id="lookup">DireccionVE.lookup({ city, street, number? })</h3>
+<p>Búsqueda exacta por ciudad + calle + número opcional.</p>
+<table>
+  <tr><th>Parámetro</th><th>Tipo</th><th>Descripción</th></tr>
+  <tr><td><code>city</code></td><td>string</td><td>Ciudad o localidad</td></tr>
+  <tr><td><code>street</code></td><td>string</td><td>Nombre de la calle</td></tr>
+  <tr><td><code>number</code></td><td>string</td><td>(Opcional) Número de casa</td></tr>
+</table>
+<p class="returns">Retorna: <code>Result | null</code></p>
+<pre><code>DireccionVE.lookup({ city: 'Caracas', street: 'Av Libertador', number: '123' });
+// → { address: "Av Libertador, #123, Caracas", code: "67P8...", lat, lng }</code></pre>
+
+<h3 id="resolve">DireccionVE.resolve(plusCode)</h3>
+<p>Dado un Plus Code, encuentra la dirección conocida más cercana.</p>
+<table>
+  <tr><th>Parámetro</th><th>Tipo</th><th>Descripción</th></tr>
+  <tr><td><code>plusCode</code></td><td>string</td><td>Plus Code válido (ej: <code>67P8GRJ5+XX</code>)</td></tr>
+</table>
+<p class="returns">Retorna: <code>ResolveResult | null</code></p>
+<pre><code>DireccionVE.resolve('67P8GRJ5+XX');
+// → { address, code, lat, lng, nearestLat, nearestLng, distance }
+// distance = metros entre el código y la dirección más cercana</code></pre>
+
+<h3 id="suggest">DireccionVE.suggest(partial, limit?)</h3>
+<p>Autocompletado de calles y ciudades.</p>
+<table>
+  <tr><th>Parámetro</th><th>Tipo</th><th>Default</th><th>Descripción</th></tr>
+  <tr><td><code>partial</code></td><td>string</td><td>—</td><td>Texto parcial (mín. 2 caracteres)</td></tr>
+  <tr><td><code>limit</code></td><td>number</td><td>10</td><td>Máximo sugerencias</td></tr>
+</table>
+<p class="returns">Retorna: <code>Array&lt;string&gt;</code></p>
+<pre><code>DireccionVE.suggest('altam');
+// → ["Altamira, Av. Luis Roche", "Altamira, Calle Madrid", ...]</code></pre>
+
+<h3 id="encode">DireccionVE.encode(lat, lng, length?)</h3>
+<p>Convierte coordenadas a Plus Code.</p>
+<table>
+  <tr><th>Parámetro</th><th>Tipo</th><th>Default</th><th>Descripción</th></tr>
+  <tr><td><code>lat</code></td><td>number</td><td>—</td><td>Latitud (-90 a 90)</td></tr>
+  <tr><td><code>lng</code></td><td>number</td><td>—</td><td>Longitud (-180 a 180)</td></tr>
+  <tr><td><code>length</code></td><td>number</td><td>10</td><td>Longitud del código (8, 10, 11, 12)</td></tr>
+</table>
+<p class="returns">Retorna: <code>string</code></p>
+<pre><code>DireccionVE.encode(10.4961, -66.8509);
+// → "67P8GRJ5+XX"</code></pre>
+
+<h3 id="decode">DireccionVE.decode(plusCode)</h3>
+<p>Decodifica Plus Code a coordenadas.</p>
+<table>
+  <tr><th>Parámetro</th><th>Tipo</th><th>Descripción</th></tr>
+  <tr><td><code>plusCode</code></td><td>string</td><td>Plus Code válido</td></tr>
+</table>
+<p class="returns">Retorna: <code>{ lat, lng, latLo, lngLo, latHi, lngHi, latR, lngR }</code></p>
+<pre><code>const pos = DireccionVE.decode('67P8GRJ5+XX');
+console.log(pos.lat, pos.lng); // 10.4961, -66.8509</code></pre>
+
+<h3 id="isvalidcode">DireccionVE.isValidCode(code)</h3>
+<p>Valida si un string es un Plus Code válido.</p>
+<table>
+  <tr><th>Parámetro</th><th>Tipo</th><th>Descripción</th></tr>
+  <tr><td><code>code</code></td><td>string</td><td>String a validar</td></tr>
+</table>
+<p class="returns">Retorna: <code>boolean</code></p>
+
+<h3 id="getstats">DireccionVE.getStats()</h3>
+<p>Estadísticas del dataset cargado.</p>
+<p class="returns">Retorna: <code>{ houses, streets, cities, uniqueStreets }</code></p>
+<pre><code>DireccionVE.getStats();
+// → { houses: 3249, streets: 17351, cities: 412, uniqueStreets: 8920 }</code></pre>
+
+<hr>
+
+<h2 id="data">Datos</h2>
+<p>Los archivos JSON se sirven desde <code>https://direccionve.org/</code>:</p>
+<table>
+  <tr><th>Archivo</th><th>Registros</th><th>Descripción</th></tr>
+  <tr><td><code>data-houses.json</code></td><td>3,249</td><td>Direcciones con número <code>[zip, city, street, number, lng, lat]</code></td></tr>
+  <tr><td><code>data-streets.json</code></td><td>17,351</td><td>Calles <code>[city, name, lng, lat]</code></td></tr>
+  <tr><td><code>data-all-addresses.json</code></td><td>145,123</td><td>Todos los POI de OSM Venezuela</td></tr>
+  <tr><td><code>data-centers.json</code></td><td>15,748</td><td>Centros de votación <code>[code, name, state, muni, parish, voters, lat, lng, plusCode]</code></td></tr>
+</table>
+
+<hr>
+<p style="color: var(--text-sec); font-size: 0.85rem; margin-top: 2rem;">
+  MIT — Datos de <a href="https://www.openstreetmap.org/">OpenStreetMap</a> (ODbL) y CNE (público).
+  <br><a href="/app.html">← Ir al mapa</a> · <a href="https://github.com/andreseloysv/direccionve.org">GitHub</a>
+</p>
+
+</body>
+</html>
