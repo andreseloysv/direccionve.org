@@ -1,560 +1,612 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DirecciónVE — Demo MVP</title>
-  <meta name="theme-color" content="#0a0a0f">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📍</text></svg>">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <style>
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DirecciónVE — Demo MVP</title>
+    <meta name="theme-color" content="#0a0a0f">
+    <link rel="icon"
+          href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📍</text></svg>">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    :root {
-      --bg: #0a0a0f;
-      --surface: #12121a;
-      --card: #16161f;
-      --border: rgba(255,255,255,0.08);
-      --text: #f4f4f5;
-      --text-sec: #8b8b9e;
-      --accent: #635bff;
-      --accent2: #0ea5e9;
-      --radius: 12px;
-    }
+        :root {
+            --bg: #0a0a0f;
+            --surface: #12121a;
+            --card: #16161f;
+            --border: rgba(255, 255, 255, 0.08);
+            --text: #f4f4f5;
+            --text-sec: #8b8b9e;
+            --accent: #635bff;
+            --accent2: #0ea5e9;
+            --radius: 12px;
+        }
 
-    body {
-      font-family: Inter, system-ui, -apple-system, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      height: 100vh;
-      overflow: hidden;
-      -webkit-font-smoothing: antialiased;
-    }
+        body {
+            font-family: Inter, system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
 
-    /* — Top bar — */
-    .topbar {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 1000;
-      height: 56px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      padding: 0 16px;
-      background: rgba(10,10,15,0.85);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--border);
-    }
+        /* — Top bar — */
+        .topbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 0 16px;
+            background: rgba(10, 10, 15, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
 
-    .topbar-logo {
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: var(--text);
-      text-decoration: none;
-      white-space: nowrap;
-    }
+        .topbar-logo {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text);
+            text-decoration: none;
+            white-space: nowrap;
+        }
 
-    .topbar-logo span { color: var(--accent); }
+        .topbar-logo span {
+            color: var(--accent);
+        }
 
-    .topbar-badge {
-      font-size: 0.65rem;
-      font-weight: 600;
-      padding: 3px 8px;
-      border-radius: 100px;
-      background: rgba(99,91,255,0.15);
-      color: var(--accent);
-      letter-spacing: 0.04em;
-      white-space: nowrap;
-    }
+        .topbar-badge {
+            font-size: 0.65rem;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 100px;
+            background: rgba(99, 91, 255, 0.15);
+            color: var(--accent);
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
 
-    .search-box {
-      flex: 1;
-      max-width: 420px;
-      position: relative;
-    }
+        .search-box {
+            flex: 1;
+            max-width: 420px;
+            position: relative;
+        }
 
-    .search-box input {
-      width: 100%;
-      padding: 10px 14px 10px 36px;
-      font-size: 0.85rem;
-      font-family: inherit;
-      color: var(--text);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
+        .search-box input {
+            width: 100%;
+            padding: 10px 14px 10px 36px;
+            font-size: 0.85rem;
+            font-family: inherit;
+            color: var(--text);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
 
-    .search-box input:focus {
-      border-color: rgba(99,91,255,0.4);
-    }
+        .search-box input:focus {
+            border-color: rgba(99, 91, 255, 0.4);
+        }
 
-    .search-box input::placeholder { color: var(--text-sec); opacity: 0.5; }
+        .search-box input::placeholder {
+            color: var(--text-sec);
+            opacity: 0.5;
+        }
 
-    .search-box .search-icon {
-      position: absolute;
-      left: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 0.8rem;
-      opacity: 0.4;
-    }
+        .search-box .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.8rem;
+            opacity: 0.4;
+        }
 
-    .search-results {
-      position: absolute;
-      top: calc(100% + 6px);
-      left: 0; right: 0;
-      max-height: 280px;
-      overflow-y: auto;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-      z-index: 1001;
-    }
+        .search-results {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            max-height: 280px;
+            overflow-y: auto;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+            z-index: 1001;
+        }
 
-    .search-results.hidden { display: none; }
+        .search-results.hidden {
+            display: none;
+        }
 
-    .search-result-item {
-      padding: 10px 14px;
-      cursor: pointer;
-      border-bottom: 1px solid var(--border);
-      transition: background 0.1s;
-    }
+        .search-result-item {
+            padding: 10px 14px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.1s;
+        }
 
-    .search-result-item:last-child { border-bottom: none; }
-    .search-result-item:hover { background: var(--card); }
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
 
-    .search-result-item .result-address {
-      font-size: 0.82rem;
-      color: var(--text);
-      margin-bottom: 2px;
-    }
+        .search-result-item:hover {
+            background: var(--card);
+        }
 
-    .search-result-item .result-code {
-      font-size: 0.72rem;
-      font-family: 'SF Mono', 'Fira Code', monospace;
-      color: var(--accent);
-    }
+        .search-result-item .result-address {
+            font-size: 0.82rem;
+            color: var(--text);
+            margin-bottom: 2px;
+        }
 
-    .topbar-link {
-      font-size: 0.8rem;
-      color: var(--text-sec);
-      text-decoration: none;
-      white-space: nowrap;
-      margin-left: auto;
-    }
+        .search-result-item .result-code {
+            font-size: 0.72rem;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            color: var(--accent);
+        }
 
-    .topbar-link:hover { color: var(--text); }
+        .topbar-link {
+            font-size: 0.8rem;
+            color: var(--text-sec);
+            text-decoration: none;
+            white-space: nowrap;
+            margin-left: auto;
+        }
 
-    /* — Map — */
-    #map {
-      position: fixed;
-      top: 56px; left: 0; right: 0; bottom: 0;
-    }
+        .topbar-link:hover {
+            color: var(--text);
+        }
 
-    /* Override Leaflet styles for dark mode */
-    .leaflet-container { background: var(--bg); }
-    .leaflet-control-zoom { border: none !important; }
-    .leaflet-control-zoom a {
-      background: var(--surface) !important;
-      color: var(--text) !important;
-      border: 1px solid var(--border) !important;
-      width: 32px !important;
-      height: 32px !important;
-      line-height: 32px !important;
-      font-size: 16px !important;
-    }
-    .leaflet-control-zoom a:hover {
-      background: var(--card) !important;
-    }
-    .leaflet-control-zoom-in {
-      border-radius: 8px 8px 0 0 !important;
-    }
-    .leaflet-control-zoom-out {
-      border-radius: 0 0 8px 8px !important;
-    }
-    .leaflet-control-attribution {
-      background: rgba(10,10,15,0.7) !important;
-      color: var(--text-sec) !important;
-      font-size: 10px !important;
-    }
-    .leaflet-control-attribution a { color: var(--accent) !important; }
+        /* — Map — */
+        #map {
+            position: fixed;
+            top: 56px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
 
-    /* — Info panel — */
-    .info-panel {
-      position: fixed;
-      bottom: 24px;
-      left: 24px;
-      z-index: 1000;
-      width: 320px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-      transition: transform 0.3s, opacity 0.3s;
-    }
+        /* Override Leaflet styles for dark mode */
+        .leaflet-container {
+            background: var(--bg);
+        }
 
-    .info-panel.hidden {
-      transform: translateY(20px);
-      opacity: 0;
-      pointer-events: none;
-    }
+        .leaflet-control-zoom {
+            border: none !important;
+        }
 
-    .info-panel-header {
-      padding: 16px 20px 12px;
-      border-bottom: 1px solid var(--border);
-    }
+        .leaflet-control-zoom a {
+            background: var(--surface) !important;
+            color: var(--text) !important;
+            border: 1px solid var(--border) !important;
+            width: 32px !important;
+            height: 32px !important;
+            line-height: 32px !important;
+            font-size: 16px !important;
+        }
 
-    .info-panel-header small {
-      font-size: 0.65rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--text-sec);
-    }
+        .leaflet-control-zoom a:hover {
+            background: var(--card) !important;
+        }
 
-    .plus-code-display {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-top: 8px;
-    }
+        .leaflet-control-zoom-in {
+            border-radius: 8px 8px 0 0 !important;
+        }
 
-    .plus-code-value {
-      font-size: 1.4rem;
-      font-weight: 800;
-      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
-      letter-spacing: 0.04em;
-      background: linear-gradient(135deg, #635bff, #0ea5e9);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
+        .leaflet-control-zoom-out {
+            border-radius: 0 0 8px 8px !important;
+        }
 
-    .copy-btn {
-      padding: 6px 10px;
-      font-size: 0.7rem;
-      font-weight: 600;
-      font-family: inherit;
-      color: var(--text-sec);
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.15s;
-      white-space: nowrap;
-    }
+        .leaflet-control-attribution {
+            background: rgba(10, 10, 15, 0.7) !important;
+            color: var(--text-sec) !important;
+            font-size: 10px !important;
+        }
 
-    .copy-btn:hover {
-      color: var(--text);
-      border-color: rgba(255,255,255,0.15);
-    }
+        .leaflet-control-attribution a {
+            color: var(--accent) !important;
+        }
 
-    .copy-btn.copied {
-      color: #34d399;
-      border-color: rgba(52,211,153,0.3);
-    }
+        /* — Info panel — */
+        .info-panel {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            z-index: 1000;
+            width: 320px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            transition: transform 0.3s, opacity 0.3s;
+        }
 
-    .info-panel-body {
-      padding: 14px 20px 16px;
-    }
+        .info-panel.hidden {
+            transform: translateY(20px);
+            opacity: 0;
+            pointer-events: none;
+        }
 
-    .info-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 4px 0;
-    }
+        .info-panel-header {
+            padding: 16px 20px 12px;
+            border-bottom: 1px solid var(--border);
+        }
 
-    .info-row label {
-      font-size: 0.75rem;
-      color: var(--text-sec);
-    }
+        .info-panel-header small {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-sec);
+        }
 
-    .info-row span {
-      font-size: 0.8rem;
-      font-family: 'SF Mono', 'Fira Code', monospace;
-      color: var(--text);
-    }
+        .plus-code-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 8px;
+        }
 
-    .info-resolution {
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px solid var(--border);
-      font-size: 0.75rem;
-      color: var(--text-sec);
-    }
+        .plus-code-value {
+            font-size: 1.4rem;
+            font-weight: 800;
+            font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+            letter-spacing: 0.04em;
+            background: linear-gradient(135deg, #635bff, #0ea5e9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
 
-    .info-resolution strong {
-      color: var(--accent2);
-    }
+        .copy-btn {
+            padding: 6px 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            font-family: inherit;
+            color: var(--text-sec);
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
 
-    /* — Welcome overlay — */
-    .welcome {
-      position: fixed;
-      bottom: 24px;
-      left: 24px;
-      z-index: 999;
-      width: 320px;
-      padding: 24px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-      transition: transform 0.3s, opacity 0.3s;
-    }
+        .copy-btn:hover {
+            color: var(--text);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
 
-    .welcome h3 {
-      font-size: 1rem;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
+        .copy-btn.copied {
+            color: #34d399;
+            border-color: rgba(52, 211, 153, 0.3);
+        }
 
-    .welcome p {
-      font-size: 0.85rem;
-      color: var(--text-sec);
-      line-height: 1.6;
-    }
+        .info-panel-body {
+            padding: 14px 20px 16px;
+        }
 
-    .welcome .keys {
-      display: flex;
-      gap: 6px;
-      margin-top: 14px;
-      flex-wrap: wrap;
-    }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+        }
 
-    .welcome .key {
-      font-size: 0.7rem;
-      padding: 4px 10px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text-sec);
-    }
+        .info-row label {
+            font-size: 0.75rem;
+            color: var(--text-sec);
+        }
 
-    .welcome.hidden {
-      transform: translateY(20px);
-      opacity: 0;
-      pointer-events: none;
-    }
+        .info-row span {
+            font-size: 0.8rem;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            color: var(--text);
+        }
 
-    /* — Grid overlay label — */
-    .grid-label {
-      font-family: 'SF Mono', 'Fira Code', monospace;
-      font-size: 10px;
-      font-weight: 600;
-      color: rgba(99,91,255,0.6);
-      text-shadow: 0 1px 3px rgba(0,0,0,0.8);
-      white-space: nowrap;
-    }
+        .info-resolution {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border);
+            font-size: 0.75rem;
+            color: var(--text-sec);
+        }
 
-    /* — Marker pulse — */
-    .pulse-marker {
-      width: 16px;
-      height: 16px;
-      position: relative;
-    }
+        .info-resolution strong {
+            color: var(--accent2);
+        }
 
-    .pulse-dot {
-      width: 12px;
-      height: 12px;
-      background: var(--accent);
-      border-radius: 50%;
-      border: 2px solid #fff;
-      position: absolute;
-      top: 2px;
-      left: 2px;
-      z-index: 2;
-    }
+        /* — Welcome overlay — */
+        .welcome {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            z-index: 999;
+            width: 320px;
+            padding: 24px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            transition: transform 0.3s, opacity 0.3s;
+        }
 
-    .pulse-ring {
-      width: 32px;
-      height: 32px;
-      border: 2px solid var(--accent);
-      border-radius: 50%;
-      position: absolute;
-      top: -8px;
-      left: -8px;
-      animation: pulse-ring 1.5s ease-out infinite;
-      z-index: 1;
-    }
+        .welcome h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
 
-    @keyframes pulse-ring {
-      0% { transform: scale(0.5); opacity: 1; }
-      100% { transform: scale(1.3); opacity: 0; }
-    }
+        .welcome p {
+            font-size: 0.85rem;
+            color: var(--text-sec);
+            line-height: 1.6;
+        }
 
-    /* — Responsive — */
-    @media (max-width: 600px) {
-      .info-panel, .welcome {
-        left: 12px;
-        right: 12px;
-        width: auto;
-        bottom: 12px;
-      }
+        .welcome .keys {
+            display: flex;
+            gap: 6px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
 
-      .topbar-badge { display: none; }
-    }
-  </style>
+        .welcome .key {
+            font-size: 0.7rem;
+            padding: 4px 10px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-sec);
+        }
+
+        .welcome.hidden {
+            transform: translateY(20px);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* — Grid overlay label — */
+        .grid-label {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 10px;
+            font-weight: 600;
+            color: rgba(99, 91, 255, 0.6);
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+            white-space: nowrap;
+        }
+
+        /* — Marker pulse — */
+        .pulse-marker {
+            width: 16px;
+            height: 16px;
+            position: relative;
+        }
+
+        .pulse-dot {
+            width: 12px;
+            height: 12px;
+            background: var(--accent);
+            border-radius: 50%;
+            border: 2px solid #fff;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            z-index: 2;
+        }
+
+        .pulse-ring {
+            width: 32px;
+            height: 32px;
+            border: 2px solid var(--accent);
+            border-radius: 50%;
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            animation: pulse-ring 1.5s ease-out infinite;
+            z-index: 1;
+        }
+
+        @keyframes pulse-ring {
+            0% {
+                transform: scale(0.5);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1.3);
+                opacity: 0;
+            }
+        }
+
+        /* — Responsive — */
+        @media (max-width: 600px) {
+            .info-panel, .welcome {
+                left: 12px;
+                right: 12px;
+                width: auto;
+                bottom: 12px;
+            }
+
+            .topbar-badge {
+                display: none;
+            }
+        }
+    </style>
 </head>
 <body>
 
-  <!-- Top bar -->
-  <div class="topbar">
+<!-- Top bar -->
+<div class="topbar">
     <a href="index.html" class="topbar-logo">Dirección<span>VE</span></a>
-    <span class="topbar-badge">DEMO MVP</span>
     <div class="search-box">
-      <span class="search-icon">⌕</span>
-      <input type="text" id="search-input" placeholder="Busca una dirección o pega un Plus Code" autocomplete="off" spellcheck="false">
-      <div class="search-results hidden" id="search-results"></div>
+        <span class="search-icon">⌕</span>
+        <input type="text" id="search-input" placeholder="Busca una dirección o pega un Plus Code" autocomplete="off"
+               spellcheck="false">
+        <div class="search-results hidden" id="search-results"></div>
     </div>
     <a href="index.html" class="topbar-link">← Volver</a>
-  </div>
+</div>
 
-  <!-- Map -->
-  <div id="map"></div>
+<!-- Map -->
+<div id="map"></div>
 
-  <!-- Welcome panel -->
-  <div class="welcome" id="welcome">
+<!-- Welcome panel -->
+<div class="welcome" id="welcome">
     <h3>Toca cualquier punto del mapa</h3>
     <p>Cada punto de Venezuela ya tiene un código único. Haz clic para descubrirlo.</p>
     <div class="keys">
-      <span class="key">Click → ver código</span>
-      <span class="key">Buscar → pegar código</span>
-      <span class="key">Zoom → ver grid</span>
+        <span class="key">Click → ver código</span>
+        <span class="key">Buscar → pegar código</span>
+        <span class="key">Zoom → ver grid</span>
     </div>
-  </div>
+</div>
 
-  <!-- Info panel (hidden initially) -->
-  <div class="info-panel hidden" id="info-panel">
+<!-- Info panel (hidden initially) -->
+<div class="info-panel hidden" id="info-panel">
     <div class="info-panel-header">
-      <small>Plus Code de este punto</small>
-      <div class="plus-code-display">
-        <span class="plus-code-value" id="code-display">—</span>
-        <button class="copy-btn" id="copy-btn">Copiar</button>
-      </div>
+        <small>Plus Code de este punto</small>
+        <div class="plus-code-display">
+            <span class="plus-code-value" id="code-display">—</span>
+            <button class="copy-btn" id="copy-btn">Copiar</button>
+        </div>
     </div>
     <div class="info-panel-body">
-      <div class="info-row" id="address-row" style="display:none;padding-bottom:8px;margin-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.06)">
-        <label>Dirección</label>
-        <span id="address-display" style="font-family:inherit;font-size:0.78rem;text-align:right;max-width:200px">—</span>
-      </div>
-      <div class="info-row">
-        <label>Latitud</label>
-        <span id="lat-display">—</span>
-      </div>
-      <div class="info-row">
-        <label>Longitud</label>
-        <span id="lng-display">—</span>
-      </div>
-      <div class="info-resolution">
-        Área de <strong id="res-display">~14m × 14m</strong> — cada código cubre este cuadrado exacto
-      </div>
+        <div class="info-row" id="address-row"
+             style="display:none;padding-bottom:8px;margin-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.06)">
+            <label>Dirección</label>
+            <span id="address-display"
+                  style="font-family:inherit;font-size:0.78rem;text-align:right;max-width:200px">—</span>
+        </div>
+        <div class="info-row">
+            <label>Latitud</label>
+            <span id="lat-display">—</span>
+        </div>
+        <div class="info-row">
+            <label>Longitud</label>
+            <span id="lng-display">—</span>
+        </div>
+        <div class="info-resolution">
+            Área de <strong id="res-display">~14m × 14m</strong> — cada código cubre este cuadrado exacto
+        </div>
     </div>
-  </div>
+</div>
 
-  <script src="direccionve.js"></script>
-  <script>
+<script src="direccionve.js"></script>
+<script>
+    'use strict';
     /* =========================================================
        Init: load data and initialize engine
        ========================================================= */
-    var dataReady = false;
-    Promise.all([
-      fetch('data-houses.json').then(function (r) { return r.json(); }),
-      fetch('data-streets.json').then(function (r) { return r.json(); }),
-      fetch('data-centers.json').then(function (r) { return r.json(); })
-    ]).then(function (data) {
-      // Merge voting centers as regular addresses
-      var houses = data[0];
-      for (var i = 0; i < data[2].length; i++) {
-        var c = data[2][i]; // [code, name, state, muni, parish, voters, lat, lng, plusCode]
-        houses.push(['', c[3], c[1], c[4], c[7], c[6]]);
-      }
-      DireccionVE.init(houses, data[1]);
-      dataReady = true;
-    });
+    (async function () {
+        const [houses, streets, centers, allAddr] = await Promise.all([
+            fetch('data-houses.json').then(r => r.json()),
+            fetch('data-streets.json').then(r => r.json()),
+            fetch('data-centers.json').then(r => r.json()),
+            fetch('data-all-addresses.json').then(r => r.json())
+        ]);
+
+        for (const c of centers) {
+            houses.push(['', c[3], c[1], c[4], c[7], c[6], 'centro de votación']);
+        }
+        // Merge all OSM features: [name, street, number, city, zip, category, lng, lat]
+        for (const a of allAddr) {
+            houses.push([a[4], a[3], a[1] ? (a[1] + ' ' + (a[0] || '')) : a[0], a[2], a[6], a[7], a[5]]);
+        }
+        console.log('Total addresses: ', houses.length + centers.length + streets.length)
+        DireccionVE.init(houses, streets);
+    })();
 
 
     /* =========================================================
        Map setup
        ========================================================= */
-    var map = L.map('map', {
-      center: [8.0, -66.0],
-      zoom: 7,
-      zoomControl: true,
-      attributionControl: true
+    const map = L.map('map', {
+        center: [8.0, -66.0],
+        zoom: 7,
+        zoomControl: true,
+        attributionControl: true
     });
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
-      subdomains: 'abcd',
-      maxZoom: 20
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 20
     }).addTo(map);
 
-    var currentMarker = null;
-    var gridLayer = L.layerGroup().addTo(map);
+    let currentMarker = null;
+    const gridLayer = L.layerGroup().addTo(map);
 
     // DOM refs
-    var welcomeEl = document.getElementById('welcome');
-    var panelEl = document.getElementById('info-panel');
-    var codeEl = document.getElementById('code-display');
-    var latEl = document.getElementById('lat-display');
-    var lngEl = document.getElementById('lng-display');
-    var resEl = document.getElementById('res-display');
-    var addressRow = document.getElementById('address-row');
-    var addressEl = document.getElementById('address-display');
-    var copyBtn = document.getElementById('copy-btn');
-    var searchInput = document.getElementById('search-input');
-    var searchResults = document.getElementById('search-results');
+    const welcomeEl = document.getElementById('welcome');
+    const panelEl = document.getElementById('info-panel');
+    const codeEl = document.getElementById('code-display');
+    const latEl = document.getElementById('lat-display');
+    const lngEl = document.getElementById('lng-display');
+    const resEl = document.getElementById('res-display');
+    const addressRow = document.getElementById('address-row');
+    const addressEl = document.getElementById('address-display');
+    const copyBtn = document.getElementById('copy-btn');
+    const searchInput = document.getElementById('search-input');
+    const searchResults = document.getElementById('search-results');
 
 
     /* =========================================================
        Helpers
        ========================================================= */
     function createPulseIcon() {
-      return L.divIcon({
-        className: '',
-        html: '<div class="pulse-marker"><div class="pulse-ring"></div><div class="pulse-dot"></div></div>',
-        iconSize: [16, 16],
-        iconAnchor: [8, 8]
-      });
+        return L.divIcon({
+            className: '',
+            html: '<div class="pulse-marker"><div class="pulse-ring"></div><div class="pulse-dot"></div></div>',
+            iconSize: [16, 16],
+            iconAnchor: [8, 8]
+        });
     }
 
     function showPoint(lat, lng, code, address) {
-      var decoded = DireccionVE.decode(code);
+        const decoded = DireccionVE.decode(code);
 
-      if (currentMarker) map.removeLayer(currentMarker);
-      currentMarker = L.marker([lat, lng], { icon: createPulseIcon() }).addTo(map);
+        if (currentMarker) map.removeLayer(currentMarker);
+        currentMarker = L.marker([lat, lng], {icon: createPulseIcon()}).addTo(map);
 
-      if (window._codeRect) map.removeLayer(window._codeRect);
-      window._codeRect = L.rectangle(
-        [[decoded.latLo, decoded.lngLo], [decoded.latHi, decoded.lngHi]],
-        { color: '#635bff', weight: 2, fillColor: '#635bff', fillOpacity: 0.08, interactive: false }
-      ).addTo(map);
+        if (window._codeRect) map.removeLayer(window._codeRect);
+        window._codeRect = L.rectangle(
+            [[decoded.latLo, decoded.lngLo], [decoded.latHi, decoded.lngHi]],
+            {color: '#635bff', weight: 2, fillColor: '#635bff', fillOpacity: 0.08, interactive: false}
+        ).addTo(map);
 
-      var latMeters = (decoded.latR * 111320).toFixed(0);
-      var lngMeters = (decoded.lngR * 111320 * Math.cos(lat * Math.PI / 180)).toFixed(0);
+        const latMeters = (decoded.latR * 111320).toFixed(0);
+        const lngMeters = (decoded.lngR * 111320 * Math.cos(lat * Math.PI / 180)).toFixed(0);
 
-      codeEl.textContent = code;
-      latEl.textContent = lat.toFixed(6);
-      lngEl.textContent = lng.toFixed(6);
-      resEl.textContent = '~' + latMeters + 'm × ' + lngMeters + 'm';
+        codeEl.textContent = code;
+        latEl.textContent = lat.toFixed(6);
+        lngEl.textContent = lng.toFixed(6);
+        resEl.textContent = '~' + latMeters + 'm × ' + lngMeters + 'm';
 
-      if (address) {
-        addressEl.textContent = address;
-        addressRow.style.display = 'flex';
-      } else {
-        addressRow.style.display = 'none';
-      }
+        if (address) {
+            addressEl.textContent = address;
+            addressRow.style.display = 'flex';
+        } else {
+            addressRow.style.display = 'none';
+        }
 
-      welcomeEl.classList.add('hidden');
-      panelEl.classList.remove('hidden');
-      copyBtn.textContent = 'Copiar';
-      copyBtn.classList.remove('copied');
+        welcomeEl.classList.add('hidden');
+        panelEl.classList.remove('hidden');
+        copyBtn.textContent = 'Copiar';
+        copyBtn.classList.remove('copied');
     }
 
 
@@ -562,44 +614,54 @@
        Grid overlay
        ========================================================= */
     function drawGrid() {
-      gridLayer.clearLayers();
-      var zoom = map.getZoom();
-      if (zoom < 15) return;
+        gridLayer.clearLayers();
+        const zoom = map.getZoom();
+        if (zoom < 15) return;
 
-      var bounds = map.getBounds();
-      var gridCodeLen = zoom >= 18 ? 11 : 10;
-      var res = [20, 1, .05, .0025, .000125];
-      var latStep, lngStep;
+        const bounds = map.getBounds();
+        const gridCodeLen = zoom >= 18 ? 11 : 10;
+        const res = [20, 1, .05, .0025, .000125];
+        let latStep, lngStep;
 
-      if (gridCodeLen <= 10) {
-        var p = Math.floor((gridCodeLen - 1) / 2);
-        latStep = res[p]; lngStep = res[p];
-      } else {
-        latStep = res[4]; lngStep = res[4];
-        for (var g = 10; g < gridCodeLen; g++) { latStep /= 5; lngStep /= 4; }
-      }
-
-      var south = Math.floor(bounds.getSouth() / latStep) * latStep;
-      var west = Math.floor(bounds.getWest() / lngStep) * lngStep;
-      var count = 0;
-
-      for (var lat = south; lat <= bounds.getNorth() && count < 400; lat += latStep) {
-        for (var lng = west; lng <= bounds.getEast() && count < 400; lng += lngStep) {
-          gridLayer.addLayer(L.rectangle(
-            [[lat, lng], [lat + latStep, lng + lngStep]],
-            { color: 'rgba(99,91,255,0.25)', weight: 0.5, fillOpacity: 0, interactive: false }
-          ));
-          if (zoom >= 17) {
-            var c = DireccionVE.encode(lat + latStep / 2, lng + lngStep / 2, gridCodeLen);
-            var short = c.split('+')[0].slice(-4) + '+' + c.split('+')[1];
-            gridLayer.addLayer(L.marker([lat + latStep / 2, lng + lngStep / 2], {
-              icon: L.divIcon({ className: 'grid-label', html: short, iconSize: [60, 14], iconAnchor: [30, 7] }),
-              interactive: false
-            }));
-          }
-          count++;
+        if (gridCodeLen <= 10) {
+            const p = Math.floor((gridCodeLen - 1) / 2);
+            latStep = res[p];
+            lngStep = res[p];
+        } else {
+            latStep = res[4];
+            lngStep = res[4];
+            for (let g = 10; g < gridCodeLen; g++) {
+                latStep /= 5;
+                lngStep /= 4;
+            }
         }
-      }
+
+        const south = Math.floor(bounds.getSouth() / latStep) * latStep;
+        const west = Math.floor(bounds.getWest() / lngStep) * lngStep;
+        let count = 0;
+
+        for (let lat = south; lat <= bounds.getNorth() && count < 400; lat += latStep) {
+            for (let lng = west; lng <= bounds.getEast() && count < 400; lng += lngStep) {
+                gridLayer.addLayer(L.rectangle(
+                    [[lat, lng], [lat + latStep, lng + lngStep]],
+                    {color: 'rgba(99,91,255,0.25)', weight: 0.5, fillOpacity: 0, interactive: false}
+                ));
+                if (zoom >= 17) {
+                    const c = DireccionVE.encode(lat + latStep / 2, lng + lngStep / 2, gridCodeLen);
+                    const short = c.split('+')[0].slice(-4) + '+' + c.split('+')[1];
+                    gridLayer.addLayer(L.marker([lat + latStep / 2, lng + lngStep / 2], {
+                        icon: L.divIcon({
+                            className: 'grid-label',
+                            html: short,
+                            iconSize: [60, 14],
+                            iconAnchor: [30, 7]
+                        }),
+                        interactive: false
+                    }));
+                }
+                count++;
+            }
+        }
     }
 
     map.on('moveend', drawGrid);
@@ -611,102 +673,99 @@
        Click map → get code + nearest address
        ========================================================= */
     map.on('click', function (e) {
-      var lat = e.latlng.lat, lng = e.latlng.lng;
-      var code = DireccionVE.encode(lat, lng, 10);
+        const lat = e.latlng.lat, lng = e.latlng.lng;
+        const code = DireccionVE.encode(lat, lng, 10);
 
-      // Try to resolve nearest known address
-      var address = null;
-      if (dataReady) {
-        var resolved = DireccionVE.resolve(code);
+        // Try to resolve nearest known address
+        let address = null;
+        const resolved = DireccionVE.resolve(code);
         if (resolved && resolved.address && resolved.distance < 200) {
-          address = resolved.address + ' (~' + resolved.distance + 'm)';
+            address = resolved.address + ' (~' + resolved.distance + 'm)';
         }
-      }
 
-      map.panTo([lat, lng]);
-      showPoint(lat, lng, code, address);
+        map.panTo([lat, lng]);
+        showPoint(lat, lng, code, address);
     });
 
 
     /* =========================================================
        Search: address → code, code → address
        ========================================================= */
-    var searchTimeout;
+    let searchTimeout;
 
     searchInput.addEventListener('input', function () {
-      clearTimeout(searchTimeout);
-      var val = searchInput.value.trim();
+        clearTimeout(searchTimeout);
+        const val = searchInput.value.trim();
 
-      if (val.length < 2) {
-        searchResults.classList.add('hidden');
-        return;
-      }
-
-      searchTimeout = setTimeout(function () {
-        if (!dataReady) return;
-
-        // If it's a Plus Code, resolve it directly
-        if (DireccionVE.isValidCode(val)) {
-          var resolved = DireccionVE.resolve(val);
-          searchResults.innerHTML = '<div class="search-result-item" data-lat="' + resolved.lat + '" data-lng="' + resolved.lng + '" data-code="' + resolved.code + '" data-address="' + (resolved.address || '') + '">'
-            + '<div class="result-address">' + (resolved.address || 'Ubicación sin dirección registrada') + (resolved.distance ? ' (~' + resolved.distance + 'm)' : '') + '</div>'
-            + '<div class="result-code">' + resolved.code + '</div></div>';
-          searchResults.classList.remove('hidden');
-          return;
+        if (val.length < 2) {
+            searchResults.classList.add('hidden');
+            return;
         }
 
-        // Search by address text
-        var results = DireccionVE.search(val, 8);
-        if (results.length === 0) {
-          searchResults.innerHTML = '<div style="padding:12px 14px;font-size:0.8rem;color:var(--text-sec)">Sin resultados</div>';
-          searchResults.classList.remove('hidden');
-          return;
-        }
+        searchTimeout = setTimeout(function () {
 
-        var html = '';
-        for (var i = 0; i < results.length; i++) {
-          var r = results[i];
-          html += '<div class="search-result-item" data-lat="' + r.lat + '" data-lng="' + r.lng + '" data-code="' + r.code + '" data-address="' + r.address + '">'
-            + '<div class="result-address">' + r.address + '</div>'
-            + '<div class="result-code">' + r.code + '</div></div>';
-        }
-        searchResults.innerHTML = html;
-        searchResults.classList.remove('hidden');
-      }, 200);
+            // If it's a Plus Code, resolve it directly
+            if (DireccionVE.isValidCode(val)) {
+                const resolved = DireccionVE.resolve(val);
+                searchResults.innerHTML = '<div class="search-result-item" data-lat="' + resolved.lat + '" data-lng="' + resolved.lng + '" data-code="' + resolved.code + '" data-address="' + (resolved.address || '') + '">'
+                    + '<div class="result-address">' + (resolved.address || 'Ubicación sin dirección registrada') + (resolved.distance ? ' (~' + resolved.distance + 'm)' : '') + '</div>'
+                    + '<div class="result-code">' + resolved.code + '</div></div>';
+                searchResults.classList.remove('hidden');
+                return;
+            }
+
+            // Search by address text
+            const results = DireccionVE.search(val, 8);
+            if (results.length === 0) {
+                searchResults.innerHTML = '<div style="padding:12px 14px;font-size:0.8rem;color:var(--text-sec)">Sin resultados</div>';
+                searchResults.classList.remove('hidden');
+                return;
+            }
+
+            let html = '';
+            for (let i = 0; i < results.length; i++) {
+                const r = results[i];
+                html += '<div class="search-result-item" data-lat="' + r.lat + '" data-lng="' + r.lng + '" data-code="' + r.code + '" data-address="' + r.address + '">'
+                    + '<div class="result-address">' + r.address + '</div>'
+                    + '<div class="result-code">' + r.code + '</div></div>';
+            }
+            searchResults.innerHTML = html;
+            searchResults.classList.remove('hidden');
+        }, 200);
     });
 
     // Click a search result
     searchResults.addEventListener('click', function (e) {
-      var item = e.target.closest('.search-result-item');
-      if (!item) return;
+        const item = e.target.closest('.search-result-item');
+        if (!item) return;
 
-      var lat = parseFloat(item.dataset.lat);
-      var lng = parseFloat(item.dataset.lng);
-      var code = item.dataset.code;
-      var address = item.dataset.address;
+        const lat = parseFloat(item.dataset.lat);
+        const lng = parseFloat(item.dataset.lng);
+        const code = item.dataset.code;
+        const address = item.dataset.address;
 
-      map.flyTo([lat, lng], 18, { duration: 1 });
-      showPoint(lat, lng, code, address);
-      searchInput.value = address || code;
-      searchResults.classList.add('hidden');
+        map.flyTo([lat, lng], 18, {duration: 1});
+        showPoint(lat, lng, code, address);
+        searchInput.value = address || code;
+        searchResults.classList.add('hidden');
     });
 
     // Enter key in search
     searchInput.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') {
-        var firstItem = searchResults.querySelector('.search-result-item');
-        if (firstItem) firstItem.click();
-      }
-      if (e.key === 'Escape') {
-        searchResults.classList.add('hidden');
-      }
+        if (e.key === 'Enter') {
+            const firstItem = searchResults.querySelector('.search-result-item');
+            if (firstItem) firstItem.click();
+        }
+        if (e.key === 'Escape') {
+            searchResults.classList.add('hidden');
+        }
     });
 
     // Close results on outside click
     document.addEventListener('click', function (e) {
-      if (!e.target.closest('.search-box')) {
-        searchResults.classList.add('hidden');
-      }
+        if (!e.target.closest('.search-box')) {
+            searchResults.classList.add('hidden');
+        }
     });
 
 
@@ -714,14 +773,17 @@
        Copy to clipboard
        ========================================================= */
     copyBtn.addEventListener('click', function () {
-      var code = codeEl.textContent;
-      if (!code || code === '—') return;
-      navigator.clipboard.writeText(code).then(function () {
-        copyBtn.textContent = '¡Copiado!';
-        copyBtn.classList.add('copied');
-        setTimeout(function () { copyBtn.textContent = 'Copiar'; copyBtn.classList.remove('copied'); }, 2000);
-      });
+        const code = codeEl.textContent;
+        if (!code || code === '—') return;
+        navigator.clipboard.writeText(code).then(function () {
+            copyBtn.textContent = '¡Copiado!';
+            copyBtn.classList.add('copied');
+            setTimeout(function () {
+                copyBtn.textContent = 'Copiar';
+                copyBtn.classList.remove('copied');
+            }, 2000);
+        });
     });
-  </script>
+</script>
 </body>
 </html>

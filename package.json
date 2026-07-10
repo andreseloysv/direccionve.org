@@ -1,0 +1,16 @@
+{
+  "name": "direccionve",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "extract:addresses": "node extract_addresses.js",
+    "extract:streets": "node extract_streets.js",
+    "extract:all": "node extract_all.js",
+    "extract": "node extract_addresses.js && node extract_streets.js && node extract_all.js",
+    "geocode:centers": "node geocode_centers.js",
+    "geocode:google": "node geocode_google.js"
+  },
+  "dependencies": {
+    "osm-read": "0.7.0"
+  }
+}

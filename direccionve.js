@@ -10,14 +10,14 @@
  *   DireccionVE.encode(lat, lng, len) — coordenadas → Plus Code
  *   DireccionVE.decode(code) — Plus Code → coordenadas
  */
-var DireccionVE = (function () {
+const DireccionVE = (function () {
   'use strict';
 
   /* =======================================================
      Open Location Code (Plus Codes) — encode / decode
      ======================================================= */
-  var A = '23456789CFGHJMPQRVWX';
-  var R = [20, 1, .05, .0025, .000125];
+  const A = '23456789CFGHJMPQRVWX';
+  const R = [20, 1, .05, .0025, .000125];
 
   function encode(lat, lng, len) {
     len = len || 10;
@@ -26,22 +26,22 @@ var DireccionVE = (function () {
     while (lng >= 180) lng -= 360;
     if (lat === 90) lat -= .9 * R[Math.floor((Math.min(len, 10) - 1) / 2)];
 
-    var code = '', aLat = lat + 90, aLng = lng + 180, i = 0;
+    let code = '', aLat = lat + 90, aLng = lng + 180, i = 0;
     while (i < len) {
       if (i < 10) {
-        var p = i / 2, r = R[p];
-        var dLat = Math.min(Math.floor(aLat / r), 19);
-        var dLng = Math.min(Math.floor(aLng / r), 19);
+        const p = i / 2, r = R[p];
+        let dLat = Math.min(Math.floor(aLat / r), 19);
+        let dLng = Math.min(Math.floor(aLng / r), 19);
         aLat -= dLat * r; aLng -= dLng * r;
         code += A[dLat] + A[dLng];
         i += 2;
         if (i === 8) code += '+';
       } else {
-        var rLat = R[4], rLng = R[4];
-        for (var g = 10; g < i; g++) { rLat /= 5; rLng /= 4; }
-        var gLatR = rLat / 5, gLngR = rLng / 4;
-        var row = Math.min(Math.floor(aLat / gLatR), 4);
-        var col = Math.min(Math.floor(aLng / gLngR), 3);
+        let rLat = R[4], rLng = R[4];
+        for (let g = 10; g < i; g++) { rLat /= 5; rLng /= 4; }
+        const gLatR = rLat / 5, gLngR = rLng / 4;
+        const row = Math.min(Math.floor(aLat / gLatR), 4);
+        const col = Math.min(Math.floor(aLng / gLngR), 3);
         aLat -= row * gLatR; aLng -= col * gLngR;
         code += A[row * 4 + col];
         i++;
@@ -53,24 +53,24 @@ var DireccionVE = (function () {
 
   function decode(code) {
     code = code.toUpperCase().replace(/\s/g, '');
-    var clean = code.replace('+', '');
-    var lat = -90, lng = -180, latR, lngR;
+    const clean = code.replace('+', '');
+    let lat = -90, lng = -180, latR, lngR;
 
-    var pairLen = Math.min(clean.length, 10);
-    for (var i = 0; i < pairLen; i += 2) {
-      var p = i / 2;
+    const pairLen = Math.min(clean.length, 10);
+    for (let i = 0; i < pairLen; i += 2) {
+      const p = i / 2;
       latR = R[p]; lngR = R[p];
       lat += A.indexOf(clean[i]) * latR;
       lng += A.indexOf(clean[i + 1]) * lngR;
     }
 
     if (clean.length <= 10) {
-      var p2 = Math.floor((pairLen - 1) / 2);
+      const p2 = Math.floor((pairLen - 1) / 2);
       latR = R[p2]; lngR = R[p2];
     }
 
-    for (var i = 10; i < clean.length; i++) {
-      var d = A.indexOf(clean[i]);
+    for (let i = 10; i < clean.length; i++) {
+      const d = A.indexOf(clean[i]);
       if (d < 0) break;
       latR /= 5; lngR /= 4;
       lat += Math.floor(d / 4) * latR;
@@ -89,8 +89,8 @@ var DireccionVE = (function () {
     if (!code || code.length < 8) return false;
     code = code.toUpperCase().replace(/\s/g, '');
     if (code.indexOf('+') < 0) return false;
-    var clean = code.replace('+', '');
-    for (var i = 0; i < clean.length; i++) {
+    const clean = code.replace('+', '');
+    for (let i = 0; i < clean.length; i++) {
       if (A.indexOf(clean[i]) < 0) return false;
     }
     return true;
@@ -100,11 +100,11 @@ var DireccionVE = (function () {
   /* =======================================================
      Data store & indexing
      ======================================================= */
-  var houses = [];    // [{zip, city, street, number, lng, lat}]
-  var streets = [];   // [{zip, city, street, xMin, xMax, yMin, yMax, hMin, hMax}]
-  var cityIndex = {}; // city (normalized) → [indices into houses]
-  var streetIndex = {}; // "city|street" (normalized) → [indices into houses]
-  var allStreetNames = []; // unique "City, Street" for autocomplete
+  let houses = [];    // [{zip, city, street, number, lng, lat}]
+  let streets = [];   // [{zip, city, street, xMin, xMax, yMin, yMax, hMin, hMax}]
+  let cityIndex = {}; // city (normalized) → [indices into houses]
+  let streetIndex = {}; // "city|street" (normalized) → [indices into houses]
+  let allStreetNames = []; // unique "City, Street" for autocomplete
 
   function normalize(str) {
     return (str || '').toLowerCase()
@@ -114,10 +114,10 @@ var DireccionVE = (function () {
   }
 
   function init(housesData, streetsData) {
-    // Parse houses: [zip, city, street, number, lng, lat]
+    // Parse houses: [zip, city, street, number, lng, lat, type]
     houses = [];
-    for (var i = 0; i < housesData.length; i++) {
-      var h = housesData[i];
+    for (let i = 0; i < housesData.length; i++) {
+      const h = housesData[i];
       if (!h[4] || !h[5]) continue;
       houses.push({
         zip: h[0] || '',
@@ -125,37 +125,34 @@ var DireccionVE = (function () {
         street: h[2] || '',
         number: h[3] || '',
         lng: parseFloat(h[4]),
-        lat: parseFloat(h[5])
+        lat: parseFloat(h[5]),
+        type: h[6] || ''
       });
     }
 
-    // Parse streets: [zip, city, street, xMin, xMax, yMin, yMax, hMin, hMax]
+    // Parse streets: [city, name, lng, lat]
     streets = [];
-    for (var i = 0; i < streetsData.length; i++) {
-      var s = streetsData[i];
+    for (let i = 0; i < streetsData.length; i++) {
+      const s = streetsData[i];
       streets.push({
-        zip: s[0] || '',
-        city: s[1] || '',
-        street: s[2] || '',
-        xMin: parseFloat(s[3]),
-        xMax: parseFloat(s[4]),
-        yMin: parseFloat(s[5]),
-        yMax: parseFloat(s[6]),
-        hMin: parseInt(s[7]) || 0,
-        hMax: parseInt(s[8]) || 0
+        zip: '',
+        city: s[0] || '',
+        street: s[1] || '',
+        lat: parseFloat(s[3]),
+        lng: parseFloat(s[2])
       });
     }
 
     // Build indexes
     cityIndex = {};
     streetIndex = {};
-    var streetSet = {};
+    const streetSet = {};
 
-    for (var i = 0; i < houses.length; i++) {
-      var h = houses[i];
-      var nc = normalize(h.city);
-      var ns = normalize(h.street);
-      var key = nc + '|' + ns;
+    for (let i = 0; i < houses.length; i++) {
+      const h = houses[i];
+      const nc = normalize(h.city);
+      const ns = normalize(h.street);
+      const key = nc + '|' + ns;
 
       if (!cityIndex[nc]) cityIndex[nc] = [];
       cityIndex[nc].push(i);
@@ -163,16 +160,16 @@ var DireccionVE = (function () {
       if (!streetIndex[key]) streetIndex[key] = [];
       streetIndex[key].push(i);
 
-      var label = h.city + ', ' + h.street;
+      const label = h.city + ', ' + h.street;
       if (!streetSet[label]) {
         streetSet[label] = true;
       }
     }
 
     // Also index streets data
-    for (var i = 0; i < streets.length; i++) {
-      var s = streets[i];
-      var label = s.city + ', ' + s.street;
+    for (let i = 0; i < streets.length; i++) {
+      const s = streets[i];
+      const label = s.city + ', ' + s.street;
       if (!streetSet[label]) {
         streetSet[label] = true;
       }
@@ -187,12 +184,12 @@ var DireccionVE = (function () {
      ======================================================= */
   function search(query, limit) {
     limit = limit || 20;
-    var q = normalize(query);
+    const q = normalize(query);
     if (!q) return [];
 
-    var tokens = q.split(/\s+/);
-    var results = [];
-    var seen = {};
+    const tokens = q.split(/\s+/);
+    let results = [];
+    const seen = {};
 
     // Try exact code first
     if (isValidCode(query.trim())) {
@@ -200,40 +197,41 @@ var DireccionVE = (function () {
     }
 
     // Score each house by token match
-    for (var i = 0; i < houses.length; i++) {
-      var h = houses[i];
-      var target = normalize(h.city + ' ' + h.street + ' ' + h.number + ' ' + h.zip);
-      var score = 0;
+    const streetCount = {};
+    for (let i = 0; i < houses.length; i++) {
+      const h = houses[i];
+      const target = normalize(h.city + ' ' + h.street + ' ' + h.number + ' ' + h.zip);
+      let score = 0;
 
-      for (var t = 0; t < tokens.length; t++) {
+      for (let t = 0; t < tokens.length; t++) {
         if (target.indexOf(tokens[t]) >= 0) score++;
       }
 
       if (score > 0 && score >= Math.ceil(tokens.length * 0.5)) {
-        var key = h.lat.toFixed(5) + ',' + h.lng.toFixed(5);
-        if (!seen[key]) {
+        const key = h.city + '|' + h.street + '|' + h.number;
+        const streetKey = h.city + '|' + h.street;
+        if (!seen[key] && (streetCount[streetKey] || 0) < 2) {
           seen[key] = true;
+          streetCount[streetKey] = (streetCount[streetKey] || 0) + 1;
           results.push({ score: score, index: i });
         }
       }
-
-      if (results.length >= limit * 3) break;
     }
 
     // Also search streets (bounding box data)
-    for (var i = 0; i < streets.length; i++) {
-      var s = streets[i];
-      var target = normalize(s.city + ' ' + s.street + ' ' + s.zip);
-      var score = 0;
+    for (let i = 0; i < streets.length; i++) {
+      const s = streets[i];
+      const target = normalize(s.city + ' ' + s.street + ' ' + s.zip);
+      let score = 0;
 
-      for (var t = 0; t < tokens.length; t++) {
+      for (let t = 0; t < tokens.length; t++) {
         if (target.indexOf(tokens[t]) >= 0) score++;
       }
 
       if (score > 0 && score >= Math.ceil(tokens.length * 0.5)) {
-        var lat = (s.yMin + s.yMax) / 2;
-        var lng = (s.xMin + s.xMax) / 2;
-        var key = lat.toFixed(5) + ',' + lng.toFixed(5);
+        const lat = s.lat;
+        const lng = s.lng;
+        const key = lat.toFixed(5) + ',' + lng.toFixed(5);
         if (!seen[key]) {
           seen[key] = true;
           results.push({ score: score, streetIdx: i });
@@ -248,17 +246,18 @@ var DireccionVE = (function () {
     // Format results
     return results.map(function (r) {
       if (r.index !== undefined) {
-        var h = houses[r.index];
+        const h = houses[r.index];
         return {
           address: formatAddress(h.city, h.street, h.number, h.zip),
           code: encode(h.lat, h.lng, 10),
           lat: h.lat,
-          lng: h.lng
+          lng: h.lng,
+          type: h.type
         };
       } else {
-        var s = streets[r.streetIdx];
-        var lat = (s.yMin + s.yMax) / 2;
-        var lng = (s.xMin + s.xMax) / 2;
+        const s = streets[r.streetIdx];
+        const lat = s.lat;
+        const lng = s.lng;
         return {
           address: formatAddress(s.city, s.street, '', s.zip),
           code: encode(lat, lng, 10),
@@ -274,23 +273,23 @@ var DireccionVE = (function () {
      Lookup: exact match by city + street + number
      ======================================================= */
   function lookup(params) {
-    var city = normalize(params.city || '');
-    var street = normalize(params.street || '');
-    var number = (params.number || '').toString().trim();
+    const city = normalize(params.city || '');
+    const street = normalize(params.street || '');
+    const number = (params.number || '').toString().trim();
 
-    var key = city + '|' + street;
-    var indices = streetIndex[key];
+    const key = city + '|' + street;
+    const indices = streetIndex[key];
 
     if (!indices || indices.length === 0) {
       // Fallback: try partial street match
-      var results = search((params.city || '') + ' ' + (params.street || '') + ' ' + number, 5);
+      const results = search((params.city || '') + ' ' + (params.street || '') + ' ' + number, 5);
       return results.length > 0 ? results[0] : null;
     }
 
     // If number specified, find closest match
     if (number) {
-      for (var i = 0; i < indices.length; i++) {
-        var h = houses[indices[i]];
+      for (let i = 0; i < indices.length; i++) {
+        const h = houses[indices[i]];
         if (normalize(h.number) === normalize(number)) {
           return {
             address: formatAddress(h.city, h.street, h.number, h.zip),
@@ -303,7 +302,7 @@ var DireccionVE = (function () {
     }
 
     // Return first match on that street
-    var h = houses[indices[0]];
+    const h = houses[indices[0]];
     return {
       address: formatAddress(h.city, h.street, h.number, h.zip),
       code: encode(h.lat, h.lng, 10),
@@ -322,16 +321,16 @@ var DireccionVE = (function () {
   }
 
   function resolveResult(code) {
-    var pos = decode(code);
-    var nearest = null;
-    var minDist = Infinity;
+    const pos = decode(code);
+    let nearest = null;
+    let minDist = Infinity;
 
     // Find nearest house
-    for (var i = 0; i < houses.length; i++) {
-      var h = houses[i];
-      var dlat = h.lat - pos.lat;
-      var dlng = h.lng - pos.lng;
-      var dist = dlat * dlat + dlng * dlng;
+    for (let i = 0; i < houses.length; i++) {
+      const h = houses[i];
+      const dlat = h.lat - pos.lat;
+      const dlng = h.lng - pos.lng;
+      const dist = dlat * dlat + dlng * dlng;
       if (dist < minDist) {
         minDist = dist;
         nearest = i;
@@ -348,8 +347,8 @@ var DireccionVE = (function () {
       };
     }
 
-    var h = houses[nearest];
-    var distMeters = Math.sqrt(minDist) * 111320;
+    const h = houses[nearest];
+    const distMeters = Math.sqrt(minDist) * 111320;
 
     return {
       address: formatAddress(h.city, h.street, h.number, h.zip),
@@ -368,11 +367,11 @@ var DireccionVE = (function () {
      ======================================================= */
   function suggest(partial, limit) {
     limit = limit || 10;
-    var q = normalize(partial);
+    const q = normalize(partial);
     if (!q || q.length < 2) return [];
 
-    var results = [];
-    for (var i = 0; i < allStreetNames.length; i++) {
+    const results = [];
+    for (let i = 0; i < allStreetNames.length; i++) {
       if (normalize(allStreetNames[i]).indexOf(q) >= 0) {
         results.push(allStreetNames[i]);
         if (results.length >= limit) break;
@@ -386,7 +385,7 @@ var DireccionVE = (function () {
      Helpers
      ======================================================= */
   function formatAddress(city, street, number, zip) {
-    var parts = [];
+    const parts = [];
     if (street) parts.push(street);
     if (number) parts.push('#' + number);
     if (city) parts.push(city);
