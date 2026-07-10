@@ -1,7 +1,11 @@
-const CACHE_NAME = 'direccionve-v1';
+const CACHE_NAME = 'direccionve-v2';
 const CORE_ASSETS = [
   '/app.html',
   '/direccionve.js',
+  '/manifest.json',
+  '/icon.svg',
+  '/icon-192.png',
+  '/icon-512.png',
   '/data-houses.json',
   '/data-streets.json',
   '/data-centers.json'
