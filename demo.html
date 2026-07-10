@@ -399,19 +399,6 @@
 
       .topbar-badge { display: none; }
     }
-
-    /* — Voting center results — */
-    .result-center-badge {
-      display: inline-block;
-      font-size: 0.6rem;
-      font-weight: 700;
-      padding: 1px 6px;
-      border-radius: 3px;
-      background: rgba(245,158,11,0.15);
-      color: #f59e0b;
-      margin-right: 6px;
-      vertical-align: middle;
-    }
   </style>
 </head>
 <body>
@@ -422,7 +409,7 @@
     <span class="topbar-badge">DEMO MVP</span>
     <div class="search-box">
       <span class="search-icon">⌕</span>
-      <input type="text" id="search-input" placeholder="Busca dirección, centro de votación, o Plus Code" autocomplete="off" spellcheck="false">
+      <input type="text" id="search-input" placeholder="Busca una dirección o pega un Plus Code" autocomplete="off" spellcheck="false">
       <div class="search-results hidden" id="search-results"></div>
     </div>
     <a href="index.html" class="topbar-link">← Volver</a>
@@ -434,7 +421,7 @@
   <!-- Welcome panel -->
   <div class="welcome" id="welcome">
     <h3>Toca cualquier punto del mapa</h3>
-    <p>Los puntos <span style="color:#f59e0b">naranja</span> son centros de votación. Haz clic para ver su código.</p>
+    <p>Cada punto de Venezuela ya tiene un código único. Haz clic para descubrirlo.</p>
     <div class="keys">
       <span class="key">Click → ver código</span>
       <span class="key">Buscar → pegar código</span>
@@ -476,19 +463,19 @@
        Init: load data and initialize engine
        ========================================================= */
     var dataReady = false;
-    var centersData = [];
-    var centersSearchText = [];
-
     Promise.all([
       fetch('data-houses.json').then(function (r) { return r.json(); }),
       fetch('data-streets.json').then(function (r) { return r.json(); }),
       fetch('data-centers.json').then(function (r) { return r.json(); })
     ]).then(function (data) {
-      DireccionVE.init(data[0], data[1]);
-      centersData = data[2];
-      loadCenterMarkers();
+      // Merge voting centers as regular addresses
+      var houses = data[0];
+      for (var i = 0; i < data[2].length; i++) {
+        var c = data[2][i]; // [code, name, state, muni, parish, voters, lat, lng, plusCode]
+        houses.push(['', c[3], c[1], c[4], c[7], c[6]]);
+      }
+      DireccionVE.init(houses, data[1]);
       dataReady = true;
-      console.log('DirecciónVE:', centersData.length, 'centros de votación');
     });
 
 
@@ -510,62 +497,6 @@
 
     var currentMarker = null;
     var gridLayer = L.layerGroup().addTo(map);
-    var canvasRenderer = L.canvas({ padding: 0.5 });
-    var centersLayer = L.layerGroup().addTo(map);
-
-    function loadCenterMarkers() {
-      for (var i = 0; i < centersData.length; i++) {
-        var c = centersData[i];
-        centersSearchText[i] = (c[1]+' '+c[4]+' '+c[3]+' '+c[2]+' '+c[0])
-          .toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-        var m = L.circleMarker([c[6], c[7]], {
-          renderer: canvasRenderer, radius: 4,
-          fillColor: '#f59e0b', fillOpacity: 0.5,
-          color: '#f59e0b', weight: 1, opacity: 0.7
-        });
-        m._ci = i;
-        m.on('click', onCenterClick);
-        centersLayer.addLayer(m);
-      }
-    }
-
-    function onCenterClick(e) {
-      L.DomEvent.stopPropagation(e);
-      var c = centersData[this._ci];
-      map.panTo([c[6], c[7]]);
-      showCenterPoint(c);
-    }
-
-    function showCenterPoint(c) {
-      var lat = c[6], lng = c[7], pc = c[8];
-      if (currentMarker) map.removeLayer(currentMarker);
-      currentMarker = L.marker([lat, lng], { icon: createPulseIcon() }).addTo(map);
-      var decoded = DireccionVE.decode(pc);
-      if (window._codeRect) map.removeLayer(window._codeRect);
-      window._codeRect = L.rectangle(
-        [[decoded.latLo, decoded.lngLo], [decoded.latHi, decoded.lngHi]],
-        { color: '#f59e0b', weight: 2, fillColor: '#f59e0b', fillOpacity: 0.08, interactive: false }
-      ).addTo(map);
-      codeEl.textContent = pc;
-      latEl.textContent = lat.toFixed(6);
-      lngEl.textContent = lng.toFixed(6);
-      resEl.innerHTML = c[5].toLocaleString() + ' electores &middot; <strong>Centro de votación</strong>';
-      addressEl.textContent = c[1];
-      addressRow.style.display = 'flex';
-      welcomeEl.classList.add('hidden');
-      panelEl.classList.remove('hidden');
-      copyBtn.textContent = 'Copiar';
-      copyBtn.classList.remove('copied');
-    }
-
-    function searchCenters(query, limit) {
-      var q = query.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-      var results = [];
-      for (var i = 0; i < centersSearchText.length && results.length < limit; i++) {
-        if (centersSearchText[i].indexOf(q) !== -1) results.push(i);
-      }
-      return results;
-    }
 
     // DOM refs
     var welcomeEl = document.getElementById('welcome');
@@ -724,11 +655,9 @@
           return;
         }
 
-        // Search addresses + voting centers
-        var results = DireccionVE.search(val, 4);
-        var cResults = searchCenters(val, 4);
-
-        if (results.length === 0 && cResults.length === 0) {
+        // Search by address text
+        var results = DireccionVE.search(val, 8);
+        if (results.length === 0) {
           searchResults.innerHTML = '<div style="padding:12px 14px;font-size:0.8rem;color:var(--text-sec)">Sin resultados</div>';
           searchResults.classList.remove('hidden');
           return;
@@ -737,15 +666,9 @@
         var html = '';
         for (var i = 0; i < results.length; i++) {
           var r = results[i];
-          html += '<div class="search-result-item" data-type="addr" data-lat="' + r.lat + '" data-lng="' + r.lng + '" data-code="' + r.code + '" data-address="' + r.address + '">'
+          html += '<div class="search-result-item" data-lat="' + r.lat + '" data-lng="' + r.lng + '" data-code="' + r.code + '" data-address="' + r.address + '">'
             + '<div class="result-address">' + r.address + '</div>'
             + '<div class="result-code">' + r.code + '</div></div>';
-        }
-        for (var j = 0; j < cResults.length; j++) {
-          var ci = cResults[j], cr = centersData[ci];
-          html += '<div class="search-result-item" data-type="center" data-cidx="' + ci + '">'
-            + '<div class="result-address"><span class="result-center-badge">🗳 CENTRO</span>' + cr[1] + '</div>'
-            + '<div class="result-code" style="color:#f59e0b">' + cr[4] + ' · ' + cr[5].toLocaleString() + ' electores · ' + cr[8] + '</div></div>';
         }
         searchResults.innerHTML = html;
         searchResults.classList.remove('hidden');
@@ -757,20 +680,14 @@
       var item = e.target.closest('.search-result-item');
       if (!item) return;
 
-      if (item.dataset.type === 'center') {
-        var c = centersData[parseInt(item.dataset.cidx)];
-        map.flyTo([c[6], c[7]], 14, { duration: 1 });
-        showCenterPoint(c);
-        searchInput.value = c[1];
-      } else {
-        var lat = parseFloat(item.dataset.lat);
-        var lng = parseFloat(item.dataset.lng);
-        var code = item.dataset.code;
-        var address = item.dataset.address;
-        map.flyTo([lat, lng], 18, { duration: 1 });
-        showPoint(lat, lng, code, address);
-        searchInput.value = address || code;
-      }
+      var lat = parseFloat(item.dataset.lat);
+      var lng = parseFloat(item.dataset.lng);
+      var code = item.dataset.code;
+      var address = item.dataset.address;
+
+      map.flyTo([lat, lng], 18, { duration: 1 });
+      showPoint(lat, lng, code, address);
+      searchInput.value = address || code;
       searchResults.classList.add('hidden');
     });
 
