@@ -7,7 +7,7 @@ Infraestructura de direccionamiento digital, abierta y soberana para Venezuela.
 Venezuela no tiene un sistema estandarizado de direcciones. DirecciónVE es un proyecto open source para darle a cada metro cuadrado del país un código único, verificable y que funcione 100% offline.
 
 **Website:** [direccionve.org](https://direccionve.org)
-**Demo:** [direccionve.org/demo.html](https://direccionve.org/demo.html)
+**App:** [direccionve.org/app](https://direccionve.org/app.html)
 
 ---
 
