@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">¿EstásBien?</string>
+    <string name="app_tagline">Responde después de un sismo. Salva vidas.</string>
+
+    <!-- Register -->
+    <string name="register_title">Regístrate</string>
+    <string name="register_subtitle">Para avisarte después de un sismo y saber que estás bien.</string>
+    <string name="register_name_label">Tu nombre</string>
+    <string name="register_phone_label">Teléfono</string>
+    <string name="register_pluscode_label">Plus Code de tu casa</string>
+    <string name="register_pluscode_hint">Ej: 67P8GRJ5+XX</string>
+    <string name="register_button">Activar alertas</string>
+    <string name="register_privacy">Tu ubicación solo se usa durante emergencias.</string>
+
+    <!-- Home -->
+    <string name="home_status_safe">Sin alertas activas</string>
+    <string name="home_last_quake">Último sismo</string>
+    <string name="home_no_quakes">Sin sismos recientes en Venezuela</string>
+    <string name="home_magnitude">Magnitud</string>
+    <string name="home_depth">Profundidad</string>
+    <string name="home_distance">Distancia de ti</string>
+
+    <!-- Alert -->
+    <string name="alert_title">¡Sismo detectado!</string>
+    <string name="alert_question">¿Estás bien?</string>
+    <string name="alert_yes">Sí, estoy bien</string>
+    <string name="alert_no">Necesito ayuda</string>
+    <string name="alert_timeout_warning">Si no respondes en 30 minutos, tus contactos serán notificados.</string>
+    <string name="alert_responded_safe">Marcado como seguro ✓</string>
+    <string name="alert_responded_help">Ayuda solicitada — tus contactos han sido notificados</string>
+
+    <!-- Map -->
+    <string name="map_title">Mapa de respuestas</string>
+    <string name="map_legend_safe">Reportó seguro</string>
+    <string name="map_legend_help">Necesita ayuda</string>
+    <string name="map_legend_missing">Sin respuesta</string>
+
+    <!-- Notifications -->
+    <string name="channel_earthquake">Alertas sísmicas</string>
+    <string name="channel_earthquake_desc">Notificaciones cuando se detecta un sismo cerca de ti</string>
+    <string name="notification_title">Sismo M%1$s detectado</string>
+    <string name="notification_body">¿Estás bien? Toca para responder.</string>
+
+    <!-- Errors -->
+    <string name="error_network">Sin conexión a internet</string>
+    <string name="error_location">No se pudo obtener tu ubicación</string>
+    <string name="error_generic">Algo salió mal</string>
+
+    <!-- Privacy -->
+    <string name="privacy_title">Privacidad y datos</string>
+    <string name="privacy_policy_heading">Política de privacidad</string>
+    <string name="privacy_policy_body">EstasBien recopila tus datos personales únicamente con el propósito de alertarte durante emergencias sísmicas y permitir que tus contactos sepan que estás bien.\n\nTus datos nunca serán vendidos, compartidos con terceros ni utilizados con fines publicitarios o comerciales. Solo se utilizan para:\n\n• Enviarte alertas cuando se detecta un sismo cerca de tu ubicación.\n• Mostrar tu estado de respuesta en el mapa de emergencias.\n• Notificar a tus contactos de emergencia si no respondes.\n\nTienes derecho a descargar o eliminar tus datos en cualquier momento desde esta pantalla.</string>
+    <string name="privacy_data_collected_heading">Datos que recopilamos</string>
+    <string name="privacy_data_collected_body">• Nombre — para identificarte en las alertas.\n• Teléfono — para contacto de emergencia.\n• Plus Code / ubicación — para determinar si un sismo te afecta y mostrarte en el mapa.\n• Estado de respuesta — tu respuesta a las alertas sísmicas (\"estoy bien\" o \"necesito ayuda\").\n\nTodos los datos se almacenan localmente en tu dispositivo. No se envían a servidores externos sin tu consentimiento.</string>
+    <string name="privacy_project_heading">Sobre el proyecto</string>
+    <string name="privacy_project_body">EstasBien es parte del proyecto DirecciónVE (direccionve.org), una iniciativa de código abierto para construir infraestructura digital soberana para Venezuela.\n\nDirecciónVE busca resolver la falta de un sistema de direcciones estandarizado en Venezuela, asignando códigos únicos (Plus Codes) a cada ubicación del país.\n\nEstasBien utiliza esta tecnología para la respuesta ante emergencias sísmicas.\n\nTodo el código es abierto y está disponible bajo licencia MIT en GitHub.</string>
+    <string name="privacy_export_button">Descargar mis datos (.csv)</string>
+    <string name="privacy_delete_button">Eliminar todos mis datos</string>
+    <string name="privacy_delete_warning">Al eliminar tus datos, se borrará tu perfil y dejarás de recibir alertas sísmicas.</string>
+    <string name="privacy_delete_confirm_title">¿Eliminar todos tus datos?</string>
+    <string name="privacy_delete_confirm_body">Esta acción es permanente. Se borrará tu nombre, teléfono, ubicación y todo historial de alertas. Tendrás que registrarte de nuevo para usar la app.</string>
+    <string name="privacy_delete_confirm_yes">Sí, eliminar todo</string>
+    <string name="privacy_delete_confirm_no">Cancelar</string>
+</resources>

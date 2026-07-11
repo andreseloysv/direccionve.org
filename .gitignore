@@ -6,3 +6,24 @@ geocode-cache-google.json
 /re_evento_2025.txt
 venezuela.osm.pbf
 /node_modules/
+
+# EstasBien Server
+/estasbien-server/node_modules/
+/estasbien-server/data/
+/estasbien-server/.env
+/estasbien-server/firebase-service-account.json
+/estasbien-server/*-firebase-adminsdk-*.json
+/estasbien-server/src/akira-78836-firebase-adminsdk-qjfn9-77bf09ba80.json
+
+# Android
+EstasBienVEAndroid/.gradle/
+EstasBienVEAndroid/build/
+EstasBienVEAndroid/app/build/
+EstasBienVEAndroid/app/release/
+EstasBienVEAndroid/local.properties
+EstasBienVEAndroid/app/google-services.json
+EstasBienVEAndroid/.idea/
+EstasBienVEAndroid/captures/
+EstasBienVEAndroid/*.iml
+EstasBienVEAndroid/app/*.iml
+EstasBienVEAndroid/gradle/wrapper/gradle-wrapper.jar

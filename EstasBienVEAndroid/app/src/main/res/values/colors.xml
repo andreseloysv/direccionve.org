@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Venezuela flag -->
+    <color name="ve_yellow">#FFD200</color>
+    <color name="ve_blue">#003DA5</color>
+    <color name="ve_red">#EF3340</color>
+
+    <!-- Theme -->
+    <color name="bg_dark">#0A0A0F</color>
+    <color name="surface_dark">#12121A</color>
+    <color name="card_dark">#16161F</color>
+    <color name="text_primary">#F4F4F5</color>
+    <color name="text_secondary">#8B8B9E</color>
+    <color name="accent_purple">#635BFF</color>
+    <color name="accent_blue">#0EA5E9</color>
+
+    <!-- Status -->
+    <color name="status_safe">#22C55E</color>
+    <color name="status_help">#EF4444</color>
+    <color name="status_missing">#F59E0B</color>
+</resources>
